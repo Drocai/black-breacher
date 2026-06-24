@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bbenemy00001" path="res://enemy.tscn" id="4_enemy"]
 [ext_resource type="AudioStream" path="res://hit.wav" id="5_hit"]
 [ext_resource type="Script" path="res://hud.gd" id="6_hud"]
+[ext_resource type="Script" path="res://objective.gd" id="7_obj"]
 
 [sub_resource type="FastNoiseLite" id="FNL_floor"]
 frequency = 0.03
@@ -48,6 +49,9 @@ albedo_color = Color(0.1, 0.9, 0.7, 1)
 emission_enabled = true
 emission = Color(0.1, 0.9, 0.7, 1)
 emission_energy_multiplier = 3.0
+
+[sub_resource type="BoxShape3D" id="Box_objzone"]
+size = Vector3(2.4, 2.4, 2.4)
 
 [node name="World" type="Node3D" unique_id=169256725]
 
@@ -265,6 +269,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20)
 max_health = 10
 move_speed = 1.8
 attack_damage = 14
+
+[node name="ObjectiveZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -20.5)
+script = ExtResource("7_obj")
+
+[node name="Shape" type="CollisionShape3D" parent="ObjectiveZone"]
+shape = SubResource("Box_objzone")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 script = ExtResource("6_hud")

@@ -101,6 +101,8 @@ func _input(event: InputEvent) -> void:
 				_try_dodge()
 			KEY_F:
 				_try_breach()
+			KEY_R:
+				get_tree().reload_current_scene()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			_try_jab()

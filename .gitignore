@@ -1,0 +1,17 @@
+# ---- Godot 4 ----
+# Engine cache — rebuilds automatically, must never be committed.
+.godot/
+
+# Export output and presets (export_presets.cfg can contain signing secrets).
+export_presets.cfg
+
+# Compiled translation binaries.
+*.translation
+
+# ---- Mono / C# build artifacts ----
+.mono/
+data_*/
+mono_crash.*.json
+
+# ---- Android build template artifacts ----
+/android/

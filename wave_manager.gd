@@ -72,6 +72,7 @@ func _spawn_enemy(kind: String, pos: Vector3) -> void:
 	match kind:
 		"ranged":
 			e.max_health = int(round(3 * hp_scale))
+			e.scale = Vector3.ONE * 0.9
 		"heavy":
 			e.max_health = int(round(8 * hp_scale))
 			e.move_speed = 1.3
@@ -85,6 +86,7 @@ func _spawn_enemy(kind: String, pos: Vector3) -> void:
 			e.scale = Vector3.ONE * 0.85
 		_:
 			e.max_health = int(round(4 * hp_scale))
+			e.scale = Vector3.ONE * 0.9
 	get_tree().current_scene.add_child(e)
 	e.global_position = pos + Vector3(0.0, 0.1, 0.0)
 	_alive.append(e)

@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://enemy_ranged.tscn" id="9_er"]
 [ext_resource type="Script" path="res://wave_manager.gd" id="10_wave"]
 [ext_resource type="Script" path="res://camera_rig.gd" id="11_cam"]
+[ext_resource type="AudioStream" path="res://footstep.wav" id="12_step"]
 
 [sub_resource type="FastNoiseLite" id="FNL_floor"]
 frequency = 0.03
@@ -144,6 +145,10 @@ script = ExtResource("11_cam")
 
 [node name="JabSound" type="AudioStreamPlayer" parent="Player"]
 stream = ExtResource("5_hit")
+
+[node name="Footsteps" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("12_step")
+volume_db = -4.0
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=195193103]
 transform = Transform3D(1, 0, 0, 0, 0.6427876, 0.7660444, 0, -0.7660444, 0.6427876, 0, 10, 0)

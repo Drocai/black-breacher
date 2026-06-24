@@ -253,7 +253,9 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 
 **Autonomy:** `tools/meshy_retexture.py` drives the Meshy Retexture API (reads `MESHY_API_KEY` from env). Because retexture returns a static (un-rigged) mesh, the pipeline keeps the rigged glb and applies the PBR maps as a material — re-run anytime to re-skin. Blender MCP (start its server) covers procedural materials / mesh / anim ops.
 
-**Resume point:** **F5** and play the full loop above (Breacher is now textured). Remaining: a **jump animation clip** (no Meshy jump anim yet) and **enemy navmesh** (enemies snag on the cover crates — `NavigationRegion3D` is the fix). Also a level-complete trigger at the objective would round out the loop.
+**Environment textured (June 2026):** walls/ceiling use a concrete noise material, crates a wood noise material, floor already noise — matches the textured character. Win flow added: objective trigger → **MISSION COMPLETE**, progressive HUD, **R** restarts.
+
+**Resume point:** **F5** and play the full loop (textured character + environment, full moveset, win condition). Remaining: a **jump animation clip** (no Meshy jump anim yet — needs a Meshy export) and a **proper enemy navmesh** (a `NavigationRegion3D` bakes to 0 polys over CSG — needs the level rebuilt with real CollisionShape3D/MeshInstance boxes; interim sidestep avoidance is in `enemy.gd`). Then: balance the 6-enemy fight.
 
 ---
 

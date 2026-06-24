@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://bbdoorbreach01"]
+[gd_scene load_steps=10 format=3 uid="uid://bbdoorbreach01"]
 
 [ext_resource type="Script" path="res://door.gd" id="1_door"]
+[ext_resource type="AudioStream" path="res://breach.wav" id="2_sfx"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_wood"]
 albedo_color = Color(0.36, 0.22, 0.12, 1)
@@ -15,6 +16,27 @@ size = Vector3(1.1, 2.2, 0.1)
 
 [sub_resource type="BoxShape3D" id="Box_zone"]
 size = Vector3(1.4, 2.2, 1.6)
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_dust"]
+emission_shape = 1
+emission_sphere_radius = 0.4
+direction = Vector3(0, 1, 0)
+spread = 75.0
+initial_velocity_min = 1.5
+initial_velocity_max = 3.5
+gravity = Vector3(0, -4, 0)
+scale_min = 0.15
+scale_max = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_dust"]
+transparency = 1
+albedo_color = Color(0.55, 0.48, 0.4, 0.55)
+billboard_mode = 1
+shading_mode = 0
+
+[sub_resource type="QuadMesh" id="Quad_dust"]
+material = SubResource("Mat_dust")
+size = Vector2(0.3, 0.3)
 
 [node name="Door" type="Node3D"]
 script = ExtResource("1_door")
@@ -54,3 +76,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 1.2)
 
 [node name="Shape" type="CollisionShape3D" parent="BreachZone"]
 shape = SubResource("Box_zone")
+
+[node name="Breach" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+stream = ExtResource("2_sfx")
+unit_size = 8.0
+
+[node name="Dust" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+emitting = false
+amount = 24
+lifetime = 0.8
+one_shot = true
+explosiveness = 0.9
+process_material = SubResource("PPM_dust")
+draw_pass_1 = SubResource("Quad_dust")

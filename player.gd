@@ -26,14 +26,22 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var anim: AnimationPlayer = $breacher/AnimationPlayer
 @onready var mesh: Node3D = $breacher
+@onready var camera: Camera3D = $Camera3D
 
 var attack_timer: float = 0.0      # locks locomotion anim while an action plays
 var _jump_queued: bool = false
 var breach_target: Node = null     # set by a door's BreachZone while we're in range
 var _pending_breach: Node = null   # door to swing once the strike connects
 
+# Camera shake
+var _cam_base: Transform3D
+var _shake_time: float = 0.0
+var _shake_dur: float = 0.0
+var _shake_amp: float = 0.0
+
 func _ready() -> void:
 	add_to_group("player")
+	_cam_base = camera.transform
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -91,6 +99,7 @@ func _physics_process(delta: float) -> void:
 
 	_update_locomotion_anim(direction != Vector3.ZERO, running)
 	move_and_slide()
+	_update_shake(delta)
 
 func _update_locomotion_anim(moving: bool, running: bool) -> void:
 	# An action anim (jab / breach) wins while the lock is active
@@ -138,7 +147,24 @@ func _try_breach() -> void:
 func _finish_breach() -> void:
 	if is_instance_valid(_pending_breach) and _pending_breach.has_method("breach"):
 		_pending_breach.breach()
+		shake(0.12, 0.35)
 	_pending_breach = null
+
+# --- Camera shake ---
+func shake(amplitude: float = 0.12, duration: float = 0.3) -> void:
+	_shake_amp = amplitude
+	_shake_dur = duration
+	_shake_time = duration
+
+func _update_shake(delta: float) -> void:
+	if _shake_time <= 0.0:
+		camera.transform = _cam_base
+		return
+	_shake_time -= delta
+	var falloff := _shake_time / _shake_dur
+	var offset := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * _shake_amp * falloff
+	camera.transform = _cam_base
+	camera.transform.origin += offset
 
 func _play_action(anim_name: String) -> void:
 	if not anim.has_animation(anim_name):

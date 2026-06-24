@@ -39,7 +39,7 @@ description: >-
 
 > Status: implemented and **headless-validated** (clean import + 40-frame run, zero errors) via the feature-branch PR `feature/breach-loop`. **Pending Derrick's in-editor F5 playtest** before calling it confirmed-working.
 
-**Next milestone:** a real signature door-kick / halligan animation (not in the Meshy library — custom build) and a room behind the door to enter.
+**Next milestone (NEEDS Derrick's tools):** a real signature door-kick / halligan animation and the character texture pass — both require Meshy/Blender, not code. For whoever animates the kick, the rig's leg bones are `RightUpLeg / RightLeg / RightFoot / RightToeBase` (full bone + clip list confirmed via headless inspect). The room behind the door, breach juice (sound + dust + camera shake), and a reactive enemy are all in as of this pass.
 
 ---
 
@@ -233,12 +233,16 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 | — | Sun + sky (DirectionalLight3D + WorldEnvironment) | ✅ added |
 | **E** | Framed door panel on a hinge + Area3D BreachZone | ✅ done (`door.tscn` / `door.gd`) |
 | **F** | Breach loop: enter range → **F** → strike anim → door swings open | ✅ done — headless-validated, pending F5 playtest |
-| + | Jump (Space), training dummy + jab hit-detection, textured noise floor | ✅ done this pass (`dummy.tscn` / `dummy.gd`) |
+| + | Jump (Space), training dummy + jab hit-detection, textured noise floor | ✅ done |
+| + | Room behind the door + reactive enemy inside it (`enemy.tscn` / `enemy.gd`) | ✅ done |
+| + | Breach juice: `breach.wav` (synth placeholder), dust GPUParticles3D, camera shake | ✅ done — swap `breach.wav` for a real sound anytime |
+| **G** | Signature door-kick / halligan anim — rig legs: `RightUpLeg/RightLeg/RightFoot` | ▶ external (Meshy/Blender) |
+| **G** | Jump animation clip (none in rig) | ▶ external (Meshy/Blender) |
 | later | CHARACTER texture pass (Meshy AI auto-paint → re-export → swap breacher.glb) | deferred (environment is textured; the character is still gray clay) |
 | later | Custom signature anims: real halligan door-kick + halligan swing (not in Meshy library — build later) | deferred |
 | later | GitHub `black-breacher` repo via Claude Code (kills manual folder copying) | recommended |
 
-**Resume point:** review/merge PR `feature/breach-loop`, then **F5** and play the loop — WASD move, Shift run, **Space jump**, **J / left-click jab** (topple the dummy), **F breach** the door. Next: a real signature door-kick animation + a room behind the door.
+**Resume point:** **F5** and play the loop — WASD move, Shift run, **Space jump**, **J / left-click jab** (topple the dummy), **F breach** the door, then walk into the room and drop the red enemy. Next work needs Derrick's tools: the signature door-kick anim, a jump clip, and the character texture pass (all Meshy/Blender).
 
 ---
 

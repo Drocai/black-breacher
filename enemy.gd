@@ -1,0 +1,82 @@
+extends CharacterBody3D
+
+# ============================================================
+#  BLACK BREACHER — reactive enemy (first real combat step)
+#  Faces and walks toward the player, stops at striking distance,
+#  takes jab hits (group "enemy"), recoils, and topples on death.
+#  Does not damage the player yet (no player health system yet).
+# ============================================================
+
+@export var max_health: int = 4
+@export var move_speed: float = 2.2
+@export var detect_range: float = 14.0
+@export var stop_distance: float = 1.4
+
+var health: int
+var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var _down: bool = false
+
+@onready var mesh: MeshInstance3D = $Mesh
+
+func _ready() -> void:
+	health = max_health
+	add_to_group("enemy")
+
+func _physics_process(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+
+	if _down:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		move_and_slide()
+		return
+
+	var player := _get_player()
+	if player:
+		var to_player: Vector3 = player.global_position - global_position
+		to_player.y = 0.0
+		var dist := to_player.length()
+		if dist <= detect_range and dist > stop_distance:
+			var dir := to_player.normalized()
+			velocity.x = dir.x * move_speed
+			velocity.z = dir.z * move_speed
+			mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(dir.x, dir.z), 8.0 * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, move_speed)
+			velocity.z = move_toward(velocity.z, 0.0, move_speed)
+
+	move_and_slide()
+
+func _get_player() -> Node3D:
+	var arr := get_tree().get_nodes_in_group("player")
+	return arr[0] if arr.size() > 0 else null
+
+func take_hit(damage: int) -> void:
+	if _down:
+		return
+	health -= damage
+	_flash()
+	if health <= 0:
+		_die()
+	else:
+		_knockback()
+
+func _flash() -> void:
+	var t := create_tween()
+	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
+	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
+
+func _knockback() -> void:
+	var t := create_tween()
+	t.tween_property(mesh, "rotation:x", deg_to_rad(18.0), 0.05)
+	t.tween_property(mesh, "rotation:x", 0.0, 0.15)
+
+func _die() -> void:
+	_down = true
+	remove_from_group("enemy")
+	$CollisionShape3D.set_deferred("disabled", true)
+	var t := create_tween()
+	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	t.tween_interval(0.8)
+	t.tween_callback(queue_free)

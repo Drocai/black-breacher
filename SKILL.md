@@ -265,6 +265,13 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Boss room:** the back alcove is enlarged (8×8) into a boss arena past Door2; scaled-up Boss (16 HP) guards the objective. Removed the old training dummy.
 - Re-skinned the character with a sharper Meshy prompt.
 
+**Feel/camera/enemy pass (June 2026 — audit Pass 1):**
+- Fixed a **floor fall-through** — the enlarged boss room (z-25) overran the old 40² floor; floor is now **60×60**. (Lesson: when extending the level, grow the Floor `size` to match.)
+- **Combat feel:** attacks play 1.4× (the rig defaults to 0.654× = sluggish), every hit applies **hitstun + knockback** to enemies and a small screen shake.
+- **Camera:** decoupled into `camera_rig.gd` (top-level `Camera3D`, group "camera") — smooth lerp follow + movement look-ahead + shake. `player.shake()` now forwards to it. **Jolt note:** non-uniform `scale` on a CharacterBody capsule errors — scale enemies uniformly only.
+- **Enemies de-ballooned:** capsule + **head** sphere + noise-textured bodies; bigger boss (uniform 1.5×).
+- 50-point audit recorded; Pass 2 = mission/next-level system, navmesh, enemy variety, deeper visuals.
+
 **Resume point:** **F5** and play the full loop (textured character + environment, full moveset, win condition). Remaining: a **jump animation clip** (no Meshy jump anim yet — needs a Meshy export) and a **proper enemy navmesh** (a `NavigationRegion3D` bakes to 0 polys over CSG — needs the level rebuilt with real CollisionShape3D/MeshInstance boxes; interim sidestep avoidance is in `enemy.gd`). Then: balance the 6-enemy fight.
 
 ---

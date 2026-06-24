@@ -27,6 +27,12 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var anim: AnimationPlayer = $breacher/AnimationPlayer
 @onready var mesh: Node3D = $breacher
 @onready var camera: Camera3D = $Camera3D
+@onready var jab_sound: AudioStreamPlayer = $JabSound
+
+@export var max_health: int = 100
+
+var health: int
+var _spawn: Transform3D
 
 var attack_timer: float = 0.0      # locks locomotion anim while an action plays
 var _jump_queued: bool = false
@@ -42,6 +48,8 @@ var _shake_amp: float = 0.0
 func _ready() -> void:
 	add_to_group("player")
 	_cam_base = camera.transform
+	health = max_health
+	_spawn = global_transform
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -126,6 +134,7 @@ func _try_jab() -> void:
 	get_tree().create_timer(0.15).timeout.connect(_apply_jab_hit)
 
 func _apply_jab_hit() -> void:
+	var landed := false
 	for enemy in get_tree().get_nodes_in_group("enemy"):
 		if not (enemy is Node3D) or not enemy.has_method("take_hit"):
 			continue
@@ -133,6 +142,9 @@ func _apply_jab_hit() -> void:
 		to_enemy.y = 0.0
 		if to_enemy.length() <= jab_range:
 			enemy.take_hit(jab_damage)
+			landed = true
+	if landed and jab_sound:
+		jab_sound.play()
 
 # --- Breach (F, when a door reports us in range) ---
 func _try_breach() -> void:
@@ -165,6 +177,20 @@ func _update_shake(delta: float) -> void:
 	var offset := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * _shake_amp * falloff
 	camera.transform = _cam_base
 	camera.transform.origin += offset
+
+# --- Damage / respawn ---
+func take_damage(amount: int) -> void:
+	if health <= 0:
+		return
+	health -= amount
+	shake(0.08, 0.2)
+	if health <= 0:
+		_respawn()
+
+func _respawn() -> void:
+	global_transform = _spawn
+	velocity = Vector3.ZERO
+	health = max_health
 
 func _play_action(anim_name: String) -> void:
 	if not anim.has_animation(anim_name):

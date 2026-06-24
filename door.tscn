@@ -15,7 +15,7 @@ roughness = 0.9
 size = Vector3(1.1, 2.2, 0.1)
 
 [sub_resource type="BoxShape3D" id="Box_zone"]
-size = Vector3(1.4, 2.2, 1.6)
+size = Vector3(1.8, 2.2, 2.8)
 
 [sub_resource type="ParticleProcessMaterial" id="PPM_dust"]
 emission_shape = 1
@@ -72,7 +72,7 @@ material = SubResource("Mat_wood")
 shape = SubResource("Box_panel")
 
 [node name="BreachZone" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 1.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.9)
 
 [node name="Shape" type="CollisionShape3D" parent="BreachZone"]
 shape = SubResource("Box_zone")

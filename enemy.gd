@@ -1,20 +1,23 @@
 extends CharacterBody3D
 
 # ============================================================
-#  BLACK BREACHER — reactive enemy (first real combat step)
-#  Faces and walks toward the player, stops at striking distance,
-#  takes jab hits (group "enemy"), recoils, and topples on death.
-#  Does not damage the player yet (no player health system yet).
+#  BLACK BREACHER — reactive enemy
+#  Chases the player, attacks at close range (deals damage on a
+#  cooldown), takes jab hits, recoils, and topples on death.
 # ============================================================
 
 @export var max_health: int = 4
-@export var move_speed: float = 2.2
-@export var detect_range: float = 14.0
-@export var stop_distance: float = 1.4
+@export var move_speed: float = 2.4
+@export var detect_range: float = 16.0
+@export var stop_distance: float = 1.5
+@export var attack_range: float = 1.9
+@export var attack_damage: int = 8
+@export var attack_cooldown: float = 1.3
 
 var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _down: bool = false
+var _atk_cd: float = 0.0
 
 @onready var mesh: MeshInstance3D = $Mesh
 
@@ -32,25 +35,47 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
+	if _atk_cd > 0.0:
+		_atk_cd -= delta
+
 	var player := _get_player()
 	if player:
 		var to_player: Vector3 = player.global_position - global_position
 		to_player.y = 0.0
 		var dist := to_player.length()
-		if dist <= detect_range and dist > stop_distance:
-			var dir := to_player.normalized()
+		var dir := to_player.normalized()
+
+		if dist > stop_distance:
+			# Chase
 			velocity.x = dir.x * move_speed
 			velocity.z = dir.z * move_speed
-			mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(dir.x, dir.z), 8.0 * delta)
 		else:
+			# In range — hold and attack
 			velocity.x = move_toward(velocity.x, 0.0, move_speed)
 			velocity.z = move_toward(velocity.z, 0.0, move_speed)
+			if dist <= attack_range and _atk_cd <= 0.0:
+				_attack(player)
+
+		if dist <= detect_range:
+			mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(dir.x, dir.z), 8.0 * delta)
+	else:
+		velocity.x = move_toward(velocity.x, 0.0, move_speed)
+		velocity.z = move_toward(velocity.z, 0.0, move_speed)
 
 	move_and_slide()
 
 func _get_player() -> Node3D:
 	var arr := get_tree().get_nodes_in_group("player")
 	return arr[0] if arr.size() > 0 else null
+
+func _attack(player: Node) -> void:
+	_atk_cd = attack_cooldown
+	# quick lunge for readability
+	var t := create_tween()
+	t.tween_property(mesh, "position:z", -0.35, 0.08)
+	t.tween_property(mesh, "position:z", 0.0, 0.14)
+	if player.has_method("take_damage"):
+		player.take_damage(attack_damage)
 
 func take_hit(damage: int) -> void:
 	if _down:

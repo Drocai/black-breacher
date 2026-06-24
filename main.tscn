@@ -2,25 +2,27 @@
 
 [ext_resource type="Script" uid="uid://dyhouhruslk5h" path="res://player.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://cxrt7nq4mep3q" path="res://breacher.glb" id="1_ig7tw"]
-[ext_resource type="PackedScene" path="res://door.tscn" id="2_door"]
-[ext_resource type="PackedScene" path="res://dummy.tscn" id="3_dummy"]
-[ext_resource type="PackedScene" path="res://enemy.tscn" id="4_enemy"]
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kpyra"]
-height = 2.1273804
+[ext_resource type="PackedScene" uid="uid://k0ugsh36il65" path="res://door.tscn" id="2_door"]
+[ext_resource type="PackedScene" uid="uid://dgylbf56h4ami" path="res://dummy.tscn" id="3_dummy"]
+[ext_resource type="PackedScene" uid="uid://bbenemy00001" path="res://enemy.tscn" id="4_enemy"]
+[ext_resource type="AudioStream" path="res://hit.wav" id="5_hit"]
+[ext_resource type="Script" path="res://hud.gd" id="6_hud"]
 
 [sub_resource type="FastNoiseLite" id="FNL_floor"]
 frequency = 0.03
 
 [sub_resource type="NoiseTexture2D" id="Noise_floor"]
-seamless = true
 noise = SubResource("FNL_floor")
+seamless = true
 
 [sub_resource type="StandardMaterial3D" id="Mat_floor"]
 albedo_color = Color(0.32, 0.31, 0.3, 1)
 albedo_texture = SubResource("Noise_floor")
 uv1_scale = Vector3(10, 10, 1)
-roughness = 1.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kpyra"]
+radius = 0.4
+height = 2.1273804
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 
@@ -30,8 +32,8 @@ sky_material = SubResource("Sky_mat")
 [sub_resource type="Environment" id="Env"]
 background_mode = 2
 sky = SubResource("Sky_res")
-tonemap_mode = 2
 ambient_light_source = 3
+tonemap_mode = 2
 
 [sub_resource type="StandardMaterial3D" id="Mat_wall"]
 albedo_color = Color(0.4, 0.38, 0.36, 1)
@@ -54,7 +56,7 @@ shape = SubResource("CapsuleShape3D_kpyra")
 
 [node name="breacher" parent="Player" unique_id=1520556060 instance=ExtResource("1_ig7tw")]
 
-[node name="Skeleton3D" parent="Player/breacher/Armature" parent_id_path=PackedInt32Array(1520556060, 2146713390) index="0" unique_id=386077689]
+[node name="Skeleton3D" parent="Player/breacher/Armature" parent_id_path=PackedInt32Array(1520556060, 908633059) index="0" unique_id=315437554]
 bones/0/position = Vector3(-0.5532614, 111.00364, -0.84304786)
 bones/0/rotation = Quaternion(0.07646994, -0.38728663, 0.035233673, 0.91810673)
 bones/1/rotation = Quaternion(0.9159982, 0.08598451, -0.24688552, 0.30430493)
@@ -98,63 +100,108 @@ bones/22/rotation = Quaternion(-0.18025206, -1.8079356e-07, -1.3966996e-07, 0.98
 bones/23/position = Vector3(-3.4132978e-07, 5.329452, 9.611107)
 bones/23/rotation = Quaternion(0.50747216, -2.9247613e-07, -4.3422343e-08, 0.86166817)
 
-[node name="AnimationPlayer" parent="Player/breacher" index="1" unique_id=320802124]
+[node name="AnimationPlayer" parent="Player/breacher" index="1" unique_id=1940735073]
 speed_scale = 0.654
 
 [node name="Camera3D" type="Camera3D" parent="Player" unique_id=277646888]
 transform = Transform3D(1, 0, 0, 0, 0.90630776, 0.42261827, 0, -0.42261827, 0.90630776, 0, 3, 5)
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
+[node name="JabSound" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("5_hit")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=195193103]
 transform = Transform3D(1, 0, 0, 0, 0.6427876, 0.7660444, 0, -0.7660444, 0.6427876, 0, 10, 0)
 shadow_enabled = true
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=675266847]
 environment = SubResource("Env")
 
-[node name="Door" parent="." instance=ExtResource("2_door")]
+[node name="Door" parent="." unique_id=1107411609 instance=ExtResource("2_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
 
-[node name="Dummy" parent="." instance=ExtResource("3_dummy")]
+[node name="Dummy" parent="." unique_id=461311846 instance=ExtResource("3_dummy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -2)
 
-[node name="Room" type="Node3D" parent="."]
+[node name="Room" type="Node3D" parent="." unique_id=1915546084]
 
-[node name="BackWall" type="CSGBox3D" parent="Room"]
+[node name="BackWall" type="CSGBox3D" parent="Room" unique_id=43536290]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -10)
 use_collision = true
 size = Vector3(5.3, 3, 0.3)
 material = SubResource("Mat_wall")
 
-[node name="WallL" type="CSGBox3D" parent="Room"]
+[node name="WallL" type="CSGBox3D" parent="Room" unique_id=332310310]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1.5, -7.5)
 use_collision = true
 size = Vector3(0.3, 3, 5.3)
 material = SubResource("Mat_wall")
 
-[node name="WallR" type="CSGBox3D" parent="Room"]
+[node name="WallR" type="CSGBox3D" parent="Room" unique_id=2034593405]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1.5, -7.5)
 use_collision = true
 size = Vector3(0.3, 3, 5.3)
 material = SubResource("Mat_wall")
 
-[node name="FrontL" type="CSGBox3D" parent="Room"]
+[node name="FrontL" type="CSGBox3D" parent="Room" unique_id=2145825474]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.575, 1.5, -5)
 use_collision = true
 size = Vector3(1.85, 3, 0.3)
 material = SubResource("Mat_wall")
 
-[node name="FrontR" type="CSGBox3D" parent="Room"]
+[node name="FrontR" type="CSGBox3D" parent="Room" unique_id=1364955239]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.575, 1.5, -5)
 use_collision = true
 size = Vector3(1.85, 3, 0.3)
 material = SubResource("Mat_wall")
 
-[node name="RoomLight" type="OmniLight3D" parent="Room"]
+[node name="RoomLight" type="OmniLight3D" parent="Room" unique_id=1174837244]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -7.5)
 light_energy = 1.2
 omni_range = 9.0
 
-[node name="Enemy" parent="." instance=ExtResource("4_enemy")]
+[node name="Enemy" parent="." unique_id=1739075478 instance=ExtResource("4_enemy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.5)
+
+[node name="Enemy2" parent="." instance=ExtResource("4_enemy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, -7.8)
+
+[node name="Enemy3" parent="." instance=ExtResource("4_enemy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, -9)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("6_hud")
+
+[node name="Health" type="ProgressBar" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 250.0
+offset_bottom = 50.0
+max_value = 100.0
+value = 100.0
+
+[node name="Status" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -140.0
+offset_top = 14.0
+offset_right = 140.0
+offset_bottom = 46.0
+theme_override_font_sizes/font_size = 26
+text = "ENEMIES: 0"
+horizontal_alignment = 1
+
+[node name="BreachPrompt" type="Label" parent="HUD"]
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -80.0
+offset_right = 150.0
+offset_bottom = -44.0
+theme_override_font_sizes/font_size = 30
+text = "Press F to Breach"
+horizontal_alignment = 1
 
 [editable path="Player/breacher"]

@@ -253,7 +253,9 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 
 **Autonomy:** `tools/meshy_retexture.py` drives the Meshy Retexture API (reads `MESHY_API_KEY` from env). Because retexture returns a static (un-rigged) mesh, the pipeline keeps the rigged glb and applies the PBR maps as a material — re-run anytime to re-skin. Blender MCP (start its server) covers procedural materials / mesh / anim ops.
 
-**Environment textured (June 2026):** walls/ceiling use a concrete noise material, crates a wood noise material, floor already noise — matches the textured character. Win flow added: objective trigger → **MISSION COMPLETE**, progressive HUD, **R** restarts.
+**Environment textured (June 2026):** walls/ceiling concrete noise, crates + door wood noise, floor noise — matches the textured character. Win flow: objective trigger → **MISSION COMPLETE**, progressive HUD, **R** restarts.
+
+**Combat depth (June 2026):** **ranged enemies** (`enemy_ranged`) that keep distance and lob **projectiles** (`projectile`); enemies drop spinning **health pickups** (`pickup`) on death; player **auto-faces the nearest enemy** when attacking; per-enemy hit sound; enemies cache the player ref (perf). New scripts: `enemy_ranged.gd`, `projectile.gd`, `pickup.gd` (+ scenes).
 
 **Resume point:** **F5** and play the full loop (textured character + environment, full moveset, win condition). Remaining: a **jump animation clip** (no Meshy jump anim yet — needs a Meshy export) and a **proper enemy navmesh** (a `NavigationRegion3D` bakes to 0 polys over CSG — needs the level rebuilt with real CollisionShape3D/MeshInstance boxes; interim sidestep avoidance is in `enemy.gd`). Then: balance the 6-enemy fight.
 

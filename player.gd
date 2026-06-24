@@ -75,6 +75,18 @@ func _ready() -> void:
 	_cam_base = camera.transform
 	health = max_health
 	_spawn = global_transform
+	_apply_character_skin()
+
+# Apply the Meshy-generated PBR skin to the rigged mesh at runtime.
+# (Retexture strips the rig, so we keep the animated glb and just swap the
+#  material onto its char1 surface — every animation is preserved.)
+func _apply_character_skin() -> void:
+	var mat := load("res://textures/breacher_material.tres")
+	if mat == null:
+		return
+	var m := mesh.find_child("char1", true, false)
+	if m is MeshInstance3D:
+		m.material_override = mat
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

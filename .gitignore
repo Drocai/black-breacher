@@ -15,3 +15,7 @@ mono_crash.*.json
 
 # ---- Android build template artifacts ----
 /android/
+
+# ---- Meshy pipeline working dir (raw downloads; never commit secrets/large temp) ----
+_meshy_out/
+*.meshy_key

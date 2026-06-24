@@ -8,6 +8,7 @@
 [ext_resource type="AudioStream" path="res://hit.wav" id="5_hit"]
 [ext_resource type="Script" path="res://hud.gd" id="6_hud"]
 [ext_resource type="Script" path="res://objective.gd" id="7_obj"]
+[ext_resource type="PackedScene" path="res://enemy_ranged.tscn" id="9_er"]
 
 [sub_resource type="FastNoiseLite" id="FNL_floor"]
 frequency = 0.03
@@ -287,6 +288,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20)
 max_health = 10
 move_speed = 1.8
 attack_damage = 14
+
+[node name="RangedA" parent="." instance=ExtResource("9_er")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -13)
+
+[node name="RangedB" parent="." instance=ExtResource("9_er")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -15)
 
 [node name="ObjectiveZone" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -20.5)

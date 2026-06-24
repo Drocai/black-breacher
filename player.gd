@@ -192,6 +192,7 @@ func _busy() -> bool:
 func _try_jab() -> void:
 	if _busy():
 		return
+	_face_nearest_enemy()
 	if _combo_timer <= 0.0:
 		_combo_index = 0
 	var clip: String = JAB_CLIPS[_combo_index]
@@ -206,6 +207,7 @@ func _try_jab() -> void:
 func _try_kick() -> void:
 	if _busy():
 		return
+	_face_nearest_enemy()
 	_pending_hit_damage = kick_damage
 	_pending_hit_range = kick_range
 	var clip: String = KICK_CLIPS[_kick_index]
@@ -230,6 +232,7 @@ func _apply_melee_hit() -> void:
 func _try_special() -> void:
 	if _busy() or _special_cd > 0.0:
 		return
+	_face_nearest_enemy()
 	_special_cd = special_cooldown
 	_play_action("Charged_Upward_Slash")
 	get_tree().create_timer(0.2).timeout.connect(_apply_special_hit)
@@ -299,6 +302,22 @@ func _update_shake(delta: float) -> void:
 	camera.transform.origin += offset
 
 # --- Damage / respawn ---
+func heal(amount: int) -> void:
+	health = min(health + amount, max_health)
+
+func _face_nearest_enemy() -> void:
+	var nearest: Node3D = null
+	var best := 4.0
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e is Node3D:
+			var d := global_position.distance_to(e.global_position)
+			if d < best:
+				best = d
+				nearest = e
+	if nearest:
+		var to: Vector3 = nearest.global_position - global_position
+		mesh.rotation.y = atan2(to.x, to.z)
+
 func take_damage(amount: int) -> void:
 	if health <= 0 or _invuln > 0.0:
 		return

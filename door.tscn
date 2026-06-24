@@ -1,10 +1,19 @@
-[gd_scene load_steps=10 format=3 uid="uid://bbdoorbreach01"]
+[gd_scene load_steps=12 format=3 uid="uid://bbdoorbreach01"]
 
 [ext_resource type="Script" path="res://door.gd" id="1_door"]
 [ext_resource type="AudioStream" path="res://breach.wav" id="2_sfx"]
 
+[sub_resource type="FastNoiseLite" id="FNL_wood"]
+frequency = 0.5
+
+[sub_resource type="NoiseTexture2D" id="Noise_wood"]
+noise = SubResource("FNL_wood")
+seamless = true
+
 [sub_resource type="StandardMaterial3D" id="Mat_wood"]
-albedo_color = Color(0.36, 0.22, 0.12, 1)
+albedo_color = Color(0.5, 0.32, 0.18, 1)
+albedo_texture = SubResource("Noise_wood")
+uv1_scale = Vector3(3, 3, 3)
 roughness = 0.85
 
 [sub_resource type="StandardMaterial3D" id="Mat_frame"]

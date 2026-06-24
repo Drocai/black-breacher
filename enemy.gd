@@ -14,13 +14,19 @@ extends CharacterBody3D
 @export var attack_damage: int = 8
 @export var attack_cooldown: float = 1.3
 
+@export var pickup_drop_chance: float = 0.5
+
 var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _down: bool = false
 var _atk_cd: float = 0.0
 var _stagger_time: float = 0.0
+var _player: Node3D
+
+const PICKUP_SCENE := preload("res://pickup.tscn")
 
 @onready var mesh: MeshInstance3D = $Mesh
+@onready var hit_sound: AudioStreamPlayer3D = get_node_or_null("HitSound")
 
 func _ready() -> void:
 	health = max_health
@@ -77,8 +83,11 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func _get_player() -> Node3D:
+	if is_instance_valid(_player):
+		return _player
 	var arr := get_tree().get_nodes_in_group("player")
-	return arr[0] if arr.size() > 0 else null
+	_player = arr[0] if arr.size() > 0 else null
+	return _player
 
 func _attack(player: Node) -> void:
 	_atk_cd = attack_cooldown
@@ -93,6 +102,8 @@ func take_hit(damage: int) -> void:
 		return
 	health -= damage
 	_flash()
+	if hit_sound:
+		hit_sound.play()
 	if health <= 0:
 		_die()
 	else:
@@ -116,10 +127,18 @@ func _knockback_anim() -> void:
 	t.tween_property(mesh, "rotation:x", deg_to_rad(18.0), 0.05)
 	t.tween_property(mesh, "rotation:x", 0.0, 0.15)
 
+func _maybe_drop_pickup() -> void:
+	if randf() > pickup_drop_chance:
+		return
+	var p := PICKUP_SCENE.instantiate()
+	get_tree().current_scene.add_child(p)
+	p.global_position = global_position + Vector3(0.0, 0.3, 0.0)
+
 func _die() -> void:
 	_down = true
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
+	_maybe_drop_pickup()
 	var t := create_tween()
 	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	t.tween_interval(0.8)

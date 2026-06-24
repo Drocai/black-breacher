@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://bbenemy00001"]
+[gd_scene load_steps=6 format=3 uid="uid://bbenemy00001"]
 
 [ext_resource type="Script" path="res://enemy.gd" id="1_enemy"]
+[ext_resource type="AudioStream" path="res://hit.wav" id="2_hit"]
 
 [sub_resource type="CapsuleShape3D" id="Cap_shape"]
 radius = 0.4
@@ -25,3 +26,9 @@ material_override = SubResource("Mat_enemy")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("Cap_shape")
+
+[node name="HitSound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+stream = ExtResource("2_hit")
+unit_size = 6.0
+pitch_scale = 1.3

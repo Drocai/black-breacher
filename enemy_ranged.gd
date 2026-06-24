@@ -18,6 +18,7 @@ var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _down: bool = false
 var _shoot_cd: float = 0.0
+var _stun_time: float = 0.0
 var _player: Node3D
 
 @onready var mesh: MeshInstance3D = $Mesh
@@ -32,6 +33,12 @@ func _physics_process(delta: float) -> void:
 	if _down:
 		velocity.x = 0.0
 		velocity.z = 0.0
+		move_and_slide()
+		return
+	if _stun_time > 0.0:
+		_stun_time -= delta
+		velocity.x = move_toward(velocity.x, 0.0, move_speed * 0.5)
+		velocity.z = move_toward(velocity.z, 0.0, move_speed * 0.5)
 		move_and_slide()
 		return
 	if _shoot_cd > 0.0:
@@ -88,12 +95,20 @@ func take_hit(damage: int) -> void:
 	if health <= 0:
 		Game.add_kill()
 		_die()
+	else:
+		var p := _get_player()
+		if p:
+			var away: Vector3 = global_position - p.global_position
+			away.y = 0.0
+			velocity = away.normalized() * 4.0
+		_stun_time = 0.18
 
 func stagger(dir: Vector3) -> void:
 	if _down:
 		return
 	velocity = dir.normalized() * 6.0
 	velocity.y = 0.0
+	_stun_time = 0.3
 
 func _flash() -> void:
 	var t := create_tween()

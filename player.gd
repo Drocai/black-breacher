@@ -40,6 +40,7 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var anim: AnimationPlayer = $breacher/AnimationPlayer
 @onready var mesh: Node3D = $breacher
 @onready var jab_sound: AudioStreamPlayer = $JabSound
+@onready var footstep_sound: AudioStreamPlayer = get_node_or_null("Footsteps")
 
 var health: int
 var _spawn: Transform3D
@@ -67,12 +68,18 @@ var _dodge_dir: Vector3 = Vector3.ZERO
 var _invuln: float = 0.0
 var _blocking: bool = false
 var _block_time: float = 0.0
+var _loco_speed: float = 1.0
+var _step_timer: float = 0.0
 
 func _ready() -> void:
 	add_to_group("player")
 	health = max_health
 	_spawn = global_transform
 	_apply_character_skin()
+	# The imported rig defaults to 0.654x, which desynced the walk from
+	# movement (foot-sliding). Run anims at full speed; locomotion speed is
+	# then driven per-frame by actual velocity below.
+	anim.speed_scale = 1.0
 
 # Apply the Meshy-generated PBR skin to the rigged mesh at runtime.
 # (Retexture strips the rig, so we keep the animated glb and just swap the
@@ -164,7 +171,9 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, current_speed)
 		velocity.z = move_toward(velocity.z, 0.0, current_speed)
 
-	_update_locomotion_anim(direction != Vector3.ZERO, running)
+	var hspeed := Vector2(velocity.x, velocity.z).length()
+	_update_locomotion_anim(direction != Vector3.ZERO, running, hspeed)
+	_tick_footsteps(delta, hspeed)
 	move_and_slide()
 
 func _current_input_dir() -> Vector3:
@@ -180,19 +189,30 @@ func _current_input_dir() -> Vector3:
 	d = d.normalized()
 	return Vector3(d.x, 0.0, d.y)
 
-func _update_locomotion_anim(moving: bool, running: bool) -> void:
+func _update_locomotion_anim(moving: bool, running: bool, hspeed: float) -> void:
 	if attack_timer > 0.0:
 		return
 	if not is_on_floor():
 		return
 	if moving:
-		if running:
-			if anim.current_animation != "Running":
-				anim.play("Running")
-		elif anim.current_animation != "Casual_Walk":
-			anim.play("Casual_Walk")
+		var clip := "Running" if running else "Casual_Walk"
+		var ref := run_speed if running else speed
+		# Drive the walk/run playback by ACTUAL speed so the feet match travel.
+		var spd: float = clampf(hspeed / maxf(ref, 0.1), 0.5, 1.6)
+		if anim.current_animation != clip or absf(_loco_speed - spd) > 0.12:
+			anim.play(clip, -1.0, spd)
+			_loco_speed = spd
 	elif anim.current_animation != "Axe_Breathe_and_Look_Around":
 		anim.play("Axe_Breathe_and_Look_Around")
+
+func _tick_footsteps(delta: float, hspeed: float) -> void:
+	if footstep_sound == null or not is_on_floor() or hspeed < 0.5:
+		_step_timer = 0.0
+		return
+	_step_timer -= delta
+	if _step_timer <= 0.0:
+		footstep_sound.play()
+		_step_timer = clampf(2.6 / maxf(hspeed, 0.1), 0.28, 0.6)
 
 func _busy() -> bool:
 	return attack_timer > 0.0 or _dodge_time_left > 0.0 or _blocking

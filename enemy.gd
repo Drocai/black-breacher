@@ -15,7 +15,7 @@ extends CharacterBody3D
 @export var attack_cooldown: float = 1.3
 
 @export var pickup_drop_chance: float = 0.5
-@export var knockback_force: float = 4.0
+@export var knockback_force: float = 6.0
 @export var hitstun_time: float = 0.18
 
 var health: int

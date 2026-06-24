@@ -270,7 +270,13 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Combat feel:** attacks play 1.4× (the rig defaults to 0.654× = sluggish), every hit applies **hitstun + knockback** to enemies and a small screen shake.
 - **Camera:** decoupled into `camera_rig.gd` (top-level `Camera3D`, group "camera") — smooth lerp follow + movement look-ahead + shake. `player.shake()` now forwards to it. **Jolt note:** non-uniform `scale` on a CharacterBody capsule errors — scale enemies uniformly only.
 - **Enemies de-ballooned:** capsule + **head** sphere + noise-textured bodies; bigger boss (uniform 1.5×).
-- 50-point audit recorded; Pass 2 = mission/next-level system, navmesh, enemy variety, deeper visuals.
+- 50-point audit recorded.
+
+**Audit Pass 2 (June 2026):**
+- **Mission progression:** clearing the objective advances `Game.mission` and reloads; difficulty scales (more enemies + scaled HP per mission). `R` = `Game.full_reset()`. `Game.reset()` only clears per-arena wave state now (mission/kills/score persist across reloads).
+- **Enemy variety:** `wave_manager._spawn_enemy(kind)` spawns melee / ranged / **heavy** (slow, tanky, knockback-resistant) / **fast** (fragile, quick) by setting `@export` params before `add_child`.
+- **FX:** muzzle flash on ranged shots, impact spark on projectile hit, spark+sound on block & parry. HUD shows MISSION + SCORE.
+- **Still deferred (need visual pass):** navmesh (CSG bakes 0 polys — rebuild collision), spring-arm camera wall-collision, jump clip (Meshy export).
 
 **Resume point:** **F5** and play the full loop (textured character + environment, full moveset, win condition). Remaining: a **jump animation clip** (no Meshy jump anim yet — needs a Meshy export) and a **proper enemy navmesh** (a `NavigationRegion3D` bakes to 0 polys over CSG — needs the level rebuilt with real CollisionShape3D/MeshInstance boxes; interim sidestep avoidance is in `enemy.gd`). Then: balance the 6-enemy fight.
 

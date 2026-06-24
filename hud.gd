@@ -26,13 +26,13 @@ func _process(_delta: float) -> void:
 	var reached: bool = obj != null and obj.reached
 
 	if reached and Game.all_waves_done and group_enemies == 0:
-		status.text = "MISSION COMPLETE   (R to restart)   SCORE %d" % Game.score
+		status.text = "MISSION %d COMPLETE   SCORE %d   (next...)" % [Game.mission, Game.score]
 	elif Game.all_waves_done:
 		if group_enemies > 0:
-			status.text = "Breach the back door — defeat the boss   KILLS %d" % Game.kills
+			status.text = "MISSION %d   defeat the boss   KILLS %d" % [Game.mission, Game.kills]
 		else:
-			status.text = "Reach the objective   KILLS %d" % Game.kills
+			status.text = "MISSION %d   reach the objective   KILLS %d" % [Game.mission, Game.kills]
 	elif Game.wave > 0:
-		status.text = "WAVE %d/%d   ENEMIES %d   KILLS %d" % [Game.wave, Game.max_waves, Game.wave_enemies_left, Game.kills]
+		status.text = "MISSION %d   WAVE %d/%d   ENEMIES %d   SCORE %d" % [Game.mission, Game.wave, Game.max_waves, Game.wave_enemies_left, Game.score]
 	else:
-		status.text = "Breach the door"
+		status.text = "MISSION %d   breach the door" % Game.mission

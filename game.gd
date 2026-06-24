@@ -11,17 +11,23 @@ const SPARK := preload("res://hitspark.tscn")
 
 var kills: int = 0
 var score: int = 0
+var mission: int = 1
 var wave: int = 0
 var max_waves: int = 3
 var wave_enemies_left: int = 0
 var all_waves_done: bool = false
 
 func reset() -> void:
-	kills = 0
-	score = 0
+	# per-arena state only; mission/kills/score persist across mission reloads
 	wave = 0
 	wave_enemies_left = 0
 	all_waves_done = false
+
+func full_reset() -> void:
+	mission = 1
+	kills = 0
+	score = 0
+	reset()
 
 func add_kill(points: int = 100) -> void:
 	kills += 1

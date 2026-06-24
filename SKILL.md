@@ -35,7 +35,10 @@ description: >-
 - **F** → breach a door while standing in its BreachZone (plays `Push_Forward_and_Stop`, door swings open)
 - **Idle** plays when standing still (`Axe_Breathe_and_Look_Around`)
 - Character turns to face travel direction; **camera stays stable** (only the mesh rotates, not the body) and now sits properly behind him at (0, 3, 5)
-- Scene now has a **sun + sky**, a **textured (noise) floor**, a **training dummy** that topples when jabbed, and a **breachable door**
+- Scene now has a **sun + sky**, a **textured (noise) floor**, a **training dummy**, a **breachable door**, and a **room with 3 attacking enemies** behind it
+- **HUD** (`hud.gd`): health bar, "Press F to Breach" prompt, enemy counter → AREA CLEAR
+- **Player health + respawn** (full heal at spawn on death); **enemies chase and attack** for damage; jab landing plays `hit.wav`
+- Breach was made forgiving (bigger zone) + capsule slimmed so the doorway clears easily
 
 > Status: implemented and **headless-validated** (clean import + 40-frame run, zero errors) via the feature-branch PR `feature/breach-loop`. **Pending Derrick's in-editor F5 playtest** before calling it confirmed-working.
 

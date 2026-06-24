@@ -26,18 +26,20 @@ description: >-
 
 ## 1. WHERE WE ARE (current state — read this first)
 
-**The Breacher is a PLAYABLE CHARACTER as of June 2026.** This is the milestone. The whole point was getting his son hands-on controls, and that's done:
+**The door-breach loop is BUILT as of June 2026** — the demoable payoff. Current controls:
 
 - **WASD / arrow keys** → walk (world-relative movement)
 - **Shift (hold)** → run
-- **Spacebar** → jab (`Right_Jab_from_Guard`, interrupt-protected so walk/idle don't stomp it)
+- **Spacebar** → **jump** (changed from jab — Derrick chose the standard scheme)
+- **J / left-click** → jab (`Right_Jab_from_Guard`, interrupt-protected so walk/idle don't stomp it)
+- **F** → breach a door while standing in its BreachZone (plays `Push_Forward_and_Stop`, door swings open)
 - **Idle** plays when standing still (`Axe_Breathe_and_Look_Around`)
-- Character turns to face travel direction; **camera stays stable** (only the mesh rotates, not the body)
-- Gravity holds him on the floor; follow-camera rides behind him
+- Character turns to face travel direction; **camera stays stable** (only the mesh rotates, not the body) and now sits properly behind him at (0, 3, 5)
+- Scene now has a **sun + sky**, a **textured (noise) floor**, a **training dummy** that topples when jabbed, and a **breachable door**
 
-Confirmed working on Derrick's laptop and transferred/opened clean on a second machine. Project saved.
+> Status: implemented and **headless-validated** (clean import + 40-frame run, zero errors) via the feature-branch PR `feature/breach-loop`. **Pending Derrick's in-editor F5 playtest** before calling it confirmed-working.
 
-**Next milestone: the door-breach loop** (Stage E + F below). That's the demoable payoff — walk up to a door, press a key, he strikes, the door swings open.
+**Next milestone:** a real signature door-kick / halligan animation (not in the Meshy library — custom build) and a room behind the door to enter.
 
 ---
 
@@ -47,11 +49,11 @@ Confirmed working on Derrick's laptop and transferred/opened clean on a second m
 |---|---|---|
 | Engine | **Godot 4.7-stable, Standard** (NOT .NET/Mono) | Forward+ renderer. Portable zip, no installer. SmartScreen → More info → Run anyway. |
 | 3D asset gen | **Meshy** (Pro, $20) | Image→3D = 20 credits; Remesh / Rig / Animate = 0 credits. License Private (commercial/owned). |
-| Project location | `C:/Users/djmc1/Documents/breacher` | The whole folder *is* the game. Move the folder, the other Godot opens it. |
-| Target repo | **`black-breacher`** (GitHub, via Claude Code + PAT) | NOT created yet. This is the real fix for two-laptop sync — replaces manual folder copying. |
+| Project location | `C:/Projects/web/black-breacher` | Moved OUT of OneDrive (git + OneDrive double-sync corrupts `.git/`). The folder *is* the game. A stale pre-git copy may still sit at `OneDrive/Desktop/breacher` — ignore/delete it. |
+| Repo | **`Drocai/black-breacher`** (GitHub, PRIVATE) | ✅ Created. `main` is directly pushable for laptop sync; Claude's larger changes arrive via feature-branch PRs. Run `git lfs install` once per machine or `.glb` arrives as a broken pointer. |
 | Main hero asset | `breacher.glb` | Renamed from Meshy's `..._Meshy_Merged_Animations.glb`. Mesh + skeleton + ALL animations. |
 
-**Two-device workflow:** currently manual folder copy (USB / Drive). Fragile. The standing recommendation is to stand up the `black-breacher` GitHub repo via Claude Code so both laptops pull instead of copy. Pitch it when momentum allows; don't force it mid-build.
+**Two-device workflow:** ✅ now git, not folder-copying. `git pull` before working; `git add -A && git commit -m "..." && git push` when done. New machine: `git lfs install` once, then `git clone https://github.com/Drocai/black-breacher.git`.
 
 ---
 
@@ -110,11 +112,13 @@ World (Node3D)              [main.tscn root]
 │   ├── breacher (Node3D, Editable Children ON)
 │   │   ├── Armature → Skeleton3D → char1
 │   │   └── AnimationPlayer
-│   └── Camera3D            Pos (0, 3, 5), Rotation (-25, 0, 0)
-└── [VERIFY] DirectionalLight3D  Rotation (-45, -45, 0)   — sun
-    [VERIFY] WorldEnvironment    Sky background + ProceduralSkyMaterial
+│   └── Camera3D            Pos (0, 3, 5), Rotation (-25, 0, 0)   — fixed follow, doesn't spin
+├── Sun (DirectionalLight3D)   pitched ~ -50°, shadows on
+├── WorldEnvironment           ProceduralSky + filmic tonemap
+├── Door (door.tscn instance)  at (0, 0, -5) — the breach target
+└── Dummy (dummy.tscn instance) at (3, 0, -2) — the jab target
 ```
-> `[VERIFY]` = instructed but not confirmed added. If the scene still looks like a flat gray box on resume, the sun + sky never got added — add them under **World**.
+> Floor now carries a noise-based `StandardMaterial3D` (uv tiled 10×). The character mesh is still gray clay — that's the deferred Meshy texture pass, not a bug.
 
 **Critical import gotcha:** dragging a `.glb` onto the scene makes a **locked/instanced** node (no expand arrow). Fix = right-click the node → **Editable Children** → tree unlocks. Without this you can't reach Skeleton3D/AnimationPlayer.
 
@@ -226,14 +230,15 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 | B | Player body (CharacterBody3D + capsule) | ✅ done |
 | C | Movement script (WASD/run/idle/jab) | ✅ done |
 | D | Follow camera | ✅ done |
-| — | Sun + sky (DirectionalLight3D + WorldEnvironment) | ⚠️ verify on resume |
-| **E** | **Gray-box door (CSGBox3D) + Area3D trigger zone in front** | **▶ NEXT** |
-| **F** | **Breach loop: enter range → press key → strike anim → door swings open** | **▶ NEXT (the demo)** |
-| later | Texture pass (Meshy AI auto-paint → re-export → swap breacher.glb) | deferred |
+| — | Sun + sky (DirectionalLight3D + WorldEnvironment) | ✅ added |
+| **E** | Framed door panel on a hinge + Area3D BreachZone | ✅ done (`door.tscn` / `door.gd`) |
+| **F** | Breach loop: enter range → **F** → strike anim → door swings open | ✅ done — headless-validated, pending F5 playtest |
+| + | Jump (Space), training dummy + jab hit-detection, textured noise floor | ✅ done this pass (`dummy.tscn` / `dummy.gd`) |
+| later | CHARACTER texture pass (Meshy AI auto-paint → re-export → swap breacher.glb) | deferred (environment is textured; the character is still gray clay) |
 | later | Custom signature anims: real halligan door-kick + halligan swing (not in Meshy library — build later) | deferred |
 | later | GitHub `black-breacher` repo via Claude Code (kills manual folder copying) | recommended |
 
-**Resume point:** open the `breacher` project, confirm the scene still plays (F5 → WASD/Shift/Space), verify sun+sky exist, then build **Stage E** — gray-box door + Area3D trigger.
+**Resume point:** review/merge PR `feature/breach-loop`, then **F5** and play the loop — WASD move, Shift run, **Space jump**, **J / left-click jab** (topple the dummy), **F breach** the door. Next: a real signature door-kick animation + a room behind the door.
 
 ---
 

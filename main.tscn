@@ -2,9 +2,35 @@
 
 [ext_resource type="Script" uid="uid://dyhouhruslk5h" path="res://player.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://cxrt7nq4mep3q" path="res://breacher.glb" id="1_ig7tw"]
+[ext_resource type="PackedScene" path="res://door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://dummy.tscn" id="3_dummy"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kpyra"]
 height = 2.1273804
+
+[sub_resource type="FastNoiseLite" id="FNL_floor"]
+frequency = 0.03
+
+[sub_resource type="NoiseTexture2D" id="Noise_floor"]
+seamless = true
+noise = SubResource("FNL_floor")
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor"]
+albedo_color = Color(0.32, 0.31, 0.3, 1)
+albedo_texture = SubResource("Noise_floor")
+uv1_scale = Vector3(10, 10, 1)
+roughness = 1.0
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+
+[sub_resource type="Sky" id="Sky_res"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 2
+sky = SubResource("Sky_res")
+tonemap_mode = 2
+ambient_light_source = 3
 
 [node name="World" type="Node3D" unique_id=169256725]
 
@@ -12,6 +38,7 @@ height = 2.1273804
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
 use_collision = true
 size = Vector3(20, 0.5, 20)
+material = SubResource("Mat_floor")
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=1274620237]
 script = ExtResource("1_0xm2m")
@@ -70,6 +97,19 @@ bones/23/rotation = Quaternion(0.50747216, -2.9247613e-07, -4.3422343e-08, 0.861
 speed_scale = 0.654
 
 [node name="Camera3D" type="Camera3D" parent="Player" unique_id=277646888]
-transform = Transform3D(1, 0, 0, 0, 0.90630776, 0.42261827, 0, -0.42261827, 0.90630776, 0, 0.3, 0.5)
+transform = Transform3D(1, 0, 0, 0, 0.90630776, 0.42261827, 0, -0.42261827, 0.90630776, 0, 3, 5)
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.6427876, 0.7660444, 0, -0.7660444, 0.6427876, 0, 10, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="Door" parent="." instance=ExtResource("2_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+
+[node name="Dummy" parent="." instance=ExtResource("3_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -2)
 
 [editable path="Player/breacher"]

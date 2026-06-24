@@ -278,6 +278,13 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **FX:** muzzle flash on ranged shots, impact spark on projectile hit, spark+sound on block & parry. HUD shows MISSION + SCORE.
 - **Still deferred (need visual pass):** navmesh (CSG bakes 0 polys — rebuild collision), spring-arm camera wall-collision, jump clip (Meshy export).
 
+**Audit Pass 3 (June 2026 — presence):**
+- **Walk sync fixed:** the rig was globally forced to `0.654×` (foot-sliding); now `anim.speed_scale = 1.0` and walk/run playback is driven per-frame by actual horizontal velocity (`_update_locomotion_anim(... hspeed)`). Also fixed a latent attack-timing mismatch (`_play_action` 1.4× is now truly 1.4×).
+- **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
+- **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
+
+**THEME DIRECTION (use for all future gameplay work):** "Black Breacher" = **Black** (stealth — sneaking in shadows, stealth missions, then coming up brutal) + **Breacher** (breaching doors, people, and items/containers). His **large size must read everywhere** — vs enemies, doors, items, in actions and fighting. Next 20-point roadmap covers stealth (light/shadow visibility, crouch, takedowns, vision cones, noise), breaching (grab/throw people, kick open containers, breach finishers, loud-vs-quiet entries), and size-relevance (shove-aside, hero framing, grab-and-throw, halligan weapon).
+
 **Resume point:** **F5** and play the full loop (textured character + environment, full moveset, win condition). Remaining: a **jump animation clip** (no Meshy jump anim yet — needs a Meshy export) and a **proper enemy navmesh** (a `NavigationRegion3D` bakes to 0 polys over CSG — needs the level rebuilt with real CollisionShape3D/MeshInstance boxes; interim sidestep avoidance is in `enemy.gd`). Then: balance the 6-enemy fight.
 
 ---

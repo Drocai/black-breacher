@@ -19,3 +19,4 @@ mono_crash.*.json
 # ---- Meshy pipeline working dir (raw downloads; never commit secrets/large temp) ----
 _meshy_out/
 *.meshy_key
+tools/.meshy_key

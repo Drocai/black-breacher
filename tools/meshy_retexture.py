@@ -23,7 +23,19 @@ import time
 import urllib.request
 import urllib.error
 
-KEY = os.environ.get("MESHY_API_KEY")
+def _load_key() -> str:
+    # 1) env var, 2) git-ignored local file tools/.meshy_key
+    k = os.environ.get("MESHY_API_KEY")
+    if k:
+        return k.strip()
+    kf = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".meshy_key")
+    if os.path.exists(kf):
+        with open(kf) as f:
+            return f.read().strip()
+    return ""
+
+
+KEY = _load_key()
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GLB = os.path.join(PROJECT, "breacher.glb")
 OUTDIR = os.path.join(PROJECT, "_meshy_out")

@@ -104,7 +104,10 @@ func take_hit(damage: int) -> void:
 	_flash()
 	if hit_sound:
 		hit_sound.play()
+	Game.spawn_damage_number(global_position + Vector3(0.0, 1.8, 0.0), damage)
+	Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0))
 	if health <= 0:
+		Game.add_kill()
 		_die()
 	else:
 		_knockback_anim()

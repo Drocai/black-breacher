@@ -12,6 +12,7 @@ extends CharacterBody3D
 #    E             special launcher (Charged_Upward_Slash, knockback)
 #    Q             dodge (i-frames, dashes in your move direction)
 #    F             breach a door in range (Spartan_Kick)
+#    Hold Ctrl     block (cuts damage; block early = parry + stagger)
 # ============================================================
 
 # --- Movement tunables ---
@@ -31,6 +32,8 @@ extends CharacterBody3D
 @export var dodge_time: float = 0.35
 @export var dodge_cooldown: float = 0.8
 @export var max_health: int = 100
+@export var block_damage_reduction: float = 0.25
+@export var parry_window: float = 0.2
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -63,6 +66,8 @@ var _dodge_cd: float = 0.0
 var _dodge_time_left: float = 0.0
 var _dodge_dir: Vector3 = Vector3.ZERO
 var _invuln: float = 0.0
+var _blocking: bool = false
+var _block_time: float = 0.0
 
 # Camera shake
 var _cam_base: Transform3D
@@ -140,6 +145,20 @@ func _physics_process(delta: float) -> void:
 		_update_shake(delta)
 		return
 
+	# Block (hold Ctrl): root in place, soak/parry incoming damage
+	_blocking = Input.is_physical_key_pressed(KEY_CTRL) and is_on_floor() and attack_timer <= 0.0
+	if _blocking:
+		_block_time += delta
+		velocity.x = move_toward(velocity.x, 0.0, run_speed)
+		velocity.z = move_toward(velocity.z, 0.0, run_speed)
+		if anim.has_animation("Boxing_Guard_Prep_Straight_Punch") and anim.current_animation != "Boxing_Guard_Prep_Straight_Punch":
+			anim.play("Boxing_Guard_Prep_Straight_Punch")
+		move_and_slide()
+		_update_shake(delta)
+		return
+	else:
+		_block_time = 0.0
+
 	# --- Movement (world-relative; WASD + arrows) ---
 	var direction := _current_input_dir()
 	var running := Input.is_physical_key_pressed(KEY_SHIFT)
@@ -186,7 +205,7 @@ func _update_locomotion_anim(moving: bool, running: bool) -> void:
 		anim.play("Axe_Breathe_and_Look_Around")
 
 func _busy() -> bool:
-	return attack_timer > 0.0 or _dodge_time_left > 0.0
+	return attack_timer > 0.0 or _dodge_time_left > 0.0 or _blocking
 
 # --- Punch combo (J / left-click) ---
 func _try_jab() -> void:
@@ -225,8 +244,10 @@ func _apply_melee_hit() -> void:
 		if to_enemy.length() <= _pending_hit_range:
 			enemy.take_hit(_pending_hit_damage)
 			landed = true
-	if landed and jab_sound:
-		jab_sound.play()
+	if landed:
+		if jab_sound:
+			jab_sound.play()
+		_hitstop()
 
 # --- Special launcher (E): big hit + knockback ---
 func _try_special() -> void:
@@ -253,6 +274,7 @@ func _apply_special_hit() -> void:
 		shake(0.15, 0.3)
 		if jab_sound:
 			jab_sound.play()
+		_hitstop(0.09)
 
 # --- Dodge (Q): i-frame dash ---
 func _try_dodge() -> void:
@@ -318,13 +340,31 @@ func _face_nearest_enemy() -> void:
 		var to: Vector3 = nearest.global_position - global_position
 		mesh.rotation.y = atan2(to.x, to.z)
 
+func _hitstop(duration: float = 0.06) -> void:
+	Engine.time_scale = 0.05
+	await get_tree().create_timer(duration, true, false, true).timeout
+	Engine.time_scale = 1.0
+
 func take_damage(amount: int) -> void:
 	if health <= 0 or _invuln > 0.0:
 		return
+	if _blocking:
+		if _block_time <= parry_window:
+			_parry()
+			return
+		amount = int(ceil(amount * block_damage_reduction))
 	health -= amount
 	shake(0.08, 0.2)
 	if health <= 0:
 		_respawn()
+
+func _parry() -> void:
+	shake(0.12, 0.2)
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e is Node3D and e.has_method("stagger"):
+			var to: Vector3 = e.global_position - global_position
+			if to.length() < 2.6:
+				e.stagger(Vector3(to.x, 0.0, to.z).normalized())
 
 func _respawn() -> void:
 	global_transform = _spawn

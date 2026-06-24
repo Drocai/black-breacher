@@ -83,7 +83,10 @@ func take_hit(damage: int) -> void:
 		return
 	health -= damage
 	_flash()
+	Game.spawn_damage_number(global_position + Vector3(0.0, 1.8, 0.0), damage)
+	Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0))
 	if health <= 0:
+		Game.add_kill()
 		_die()
 
 func stagger(dir: Vector3) -> void:

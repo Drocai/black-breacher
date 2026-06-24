@@ -1,11 +1,10 @@
 extends CanvasLayer
 
 # ============================================================
-#  BLACK BREACHER — HUD (pull-based, no coupling)
-#   - health bar
-#   - "Press F to Breach" prompt when a door is in range
-#   - progressive objective line: clear the building -> reach
-#     the objective -> MISSION COMPLETE
+#  BLACK BREACHER — HUD (pull-based)
+#   - health bar + breach prompt
+#   - wave / enemy / kill readout driven by the Game singleton
+#   - boss + objective finale, then MISSION COMPLETE
 # ============================================================
 
 @onready var health_bar: ProgressBar = $Health
@@ -22,13 +21,18 @@ func _process(_delta: float) -> void:
 	else:
 		prompt.visible = false
 
-	var enemies := get_tree().get_nodes_in_group("enemy").size()
+	var group_enemies := get_tree().get_nodes_in_group("enemy").size()
 	var obj := get_tree().get_first_node_in_group("objective")
 	var reached: bool = obj != null and obj.reached
 
-	if reached and enemies == 0:
-		status.text = "MISSION COMPLETE   (R to restart)"
-	elif enemies == 0:
-		status.text = "AREA CLEAR  —  reach the objective"
+	if reached and Game.all_waves_done and group_enemies == 0:
+		status.text = "MISSION COMPLETE   (R to restart)   SCORE %d" % Game.score
+	elif Game.all_waves_done:
+		if group_enemies > 0:
+			status.text = "Breach the back door — defeat the boss   KILLS %d" % Game.kills
+		else:
+			status.text = "Reach the objective   KILLS %d" % Game.kills
+	elif Game.wave > 0:
+		status.text = "WAVE %d/%d   ENEMIES %d   KILLS %d" % [Game.wave, Game.max_waves, Game.wave_enemies_left, Game.kills]
 	else:
-		status.text = "ENEMIES: %d" % enemies
+		status.text = "Breach the door"

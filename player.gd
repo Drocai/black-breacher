@@ -99,6 +99,7 @@ func _input(event: InputEvent) -> void:
 			KEY_F:
 				_try_breach()
 			KEY_R:
+				Game.full_reset()
 				get_tree().reload_current_scene()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
@@ -333,6 +334,9 @@ func take_damage(amount: int) -> void:
 			_parry()
 			return
 		amount = int(ceil(amount * block_damage_reduction))
+		Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0))
+		if jab_sound:
+			jab_sound.play()
 	health -= amount
 	shake(0.08, 0.2)
 	if health <= 0:
@@ -340,6 +344,9 @@ func take_damage(amount: int) -> void:
 
 func _parry() -> void:
 	shake(0.12, 0.2)
+	Game.spawn_hitspark(global_position + Vector3(0.0, 1.4, 0.0))
+	if jab_sound:
+		jab_sound.play()
 	for e in get_tree().get_nodes_in_group("enemy"):
 		if e is Node3D and e.has_method("stagger"):
 			var to: Vector3 = e.global_position - global_position

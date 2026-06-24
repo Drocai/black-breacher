@@ -52,16 +52,42 @@ func _next_wave() -> void:
 	_wave += 1
 	Game.wave = _wave
 	_spawning = true
-	var count := 2 + _wave
+	var count := 2 + _wave + (Game.mission - 1)
 	for i in count:
 		var pt: Vector3 = _points[i % _points.size()]
-		var ranged := _wave >= 2 and i % 3 == 0
-		var e: Node3D = (RANGED if ranged else MELEE).instantiate()
-		get_tree().current_scene.add_child(e)
-		e.global_position = pt + Vector3(0.0, 0.1, 0.0)
-		_alive.append(e)
+		var kind := "melee"
+		if _wave >= 2 and i % 3 == 0:
+			kind = "ranged"
+		elif i % 4 == 0:
+			kind = "heavy"
+		elif i % 2 == 1:
+			kind = "fast"
+		_spawn_enemy(kind, pt)
 	await get_tree().create_timer(0.3).timeout
 	_spawning = false
+
+func _spawn_enemy(kind: String, pos: Vector3) -> void:
+	var hp_scale := 1.0 + 0.3 * float(Game.mission - 1)
+	var e: Node3D = (RANGED.instantiate() if kind == "ranged" else MELEE.instantiate())
+	match kind:
+		"ranged":
+			e.max_health = int(round(3 * hp_scale))
+		"heavy":
+			e.max_health = int(round(8 * hp_scale))
+			e.move_speed = 1.3
+			e.attack_damage = 14
+			e.knockback_force = 1.5
+			e.scale = Vector3.ONE * 1.3
+		"fast":
+			e.max_health = 2
+			e.move_speed = 4.5
+			e.attack_damage = 5
+			e.scale = Vector3.ONE * 0.85
+		_:
+			e.max_health = int(round(4 * hp_scale))
+	get_tree().current_scene.add_child(e)
+	e.global_position = pos + Vector3(0.0, 0.1, 0.0)
+	_alive.append(e)
 
 func _player() -> Node3D:
 	var a := get_tree().get_nodes_in_group("player")

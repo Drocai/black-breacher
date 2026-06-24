@@ -77,6 +77,7 @@ func _shoot(dir: Vector3) -> void:
 	pr.global_position = global_position + Vector3(0.0, 1.2, 0.0) + dir * 0.8
 	if pr.has_method("setup"):
 		pr.setup(dir)
+	Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0) + dir * 0.8)
 
 func _get_player() -> Node3D:
 	if is_instance_valid(_player):

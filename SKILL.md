@@ -247,7 +247,13 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 | later | Custom signature anims: real halligan door-kick + halligan swing (not in Meshy library — build later) | deferred |
 | later | GitHub `black-breacher` repo via Claude Code (kills manual folder copying) | recommended |
 
-**Resume point:** **F5** and play — WASD move, Shift run, **Space jump**, **J / left-click = punch combo**, **right-click = heavy kick**, **F = Spartan-kick breach** the door, then clear the room of 3 enemies. Remaining external work: character texture pass + a jump clip (both Meshy). Plenty of unused clips to wire into combat (`Dodge_and_Counter`, `Charged_Upward_Slash`, `Step_in_High_Kick`).
+**Full moveset (June 2026):** WASD move, Shift run, **Space jump**, **J/left-click = 4-hit combo** (jab→hook→upper hook→uppercut), **right-click = cycling heavy kicks**, **E = special launcher** (`Charged_Upward_Slash`, knockback, 2s cd), **Q = dodge** (i-frame dash, `Dodge_and_Counter`), **F = Spartan-kick breach**. All Meshy clips are now wired except `Boxing_Guard_Prep_Straight_Punch`/`Walking` (spare).
+
+**Level (June 2026):** floor is 40×40; the room is now a big enclosed space (4m walls + ceiling, 2 interior lights, 3 cover crates) with a **2nd breach door** at the back into an **alcove** holding a glowing **objective** + an **elite enemy** (10 HP). 6 enemies total. Loop: breach front → fight through cover → breach back → drop the elite → AREA CLEAR.
+
+**Autonomy unlocked:** Meshy **Retexture API** accepts our own `breacher.glb` (text/image prompt, PBR, 4K) — with an API key the character texture pass (#6) becomes a scripted upload→retexture→download→swap→PR. Blender MCP (start its server) covers procedural materials / mesh / anim ops.
+
+**Resume point:** **F5** and play the full loop above. Remaining external: jump clip (no Meshy jump anim yet) + the character texture pass (scriptable via Meshy API key). Known rough edge: enemies have no navmesh, so they can snag on cover crates — NavigationRegion3D is the fix.
 
 ---
 

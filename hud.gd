@@ -2,10 +2,10 @@ extends CanvasLayer
 
 # ============================================================
 #  BLACK BREACHER — HUD (pull-based, no coupling)
-#  Reads the player + enemy groups each frame and updates:
 #   - health bar
 #   - "Press F to Breach" prompt when a door is in range
-#   - enemy count / AREA CLEAR
+#   - progressive objective line: clear the building -> reach
+#     the objective -> MISSION COMPLETE
 # ============================================================
 
 @onready var health_bar: ProgressBar = $Health
@@ -22,5 +22,13 @@ func _process(_delta: float) -> void:
 	else:
 		prompt.visible = false
 
-	var n := get_tree().get_nodes_in_group("enemy").size()
-	status.text = "ENEMIES: %d" % n if n > 0 else "AREA CLEAR"
+	var enemies := get_tree().get_nodes_in_group("enemy").size()
+	var obj := get_tree().get_first_node_in_group("objective")
+	var reached: bool = obj != null and obj.reached
+
+	if reached and enemies == 0:
+		status.text = "MISSION COMPLETE   (R to restart)"
+	elif enemies == 0:
+		status.text = "AREA CLEAR  —  reach the objective"
+	else:
+		status.text = "ENEMIES: %d" % enemies

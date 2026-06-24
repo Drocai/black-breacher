@@ -2,8 +2,8 @@ extends CharacterBody3D
 
 # ============================================================
 #  BLACK BREACHER — reactive enemy
-#  Chases the player, attacks at close range (deals damage on a
-#  cooldown), takes jab hits, recoils, and topples on death.
+#  Chases the player, attacks at close range on a cooldown, takes
+#  hits, can be staggered/knocked back, and topples on death.
 # ============================================================
 
 @export var max_health: int = 4
@@ -18,6 +18,7 @@ var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _down: bool = false
 var _atk_cd: float = 0.0
+var _stagger_time: float = 0.0
 
 @onready var mesh: MeshInstance3D = $Mesh
 
@@ -35,6 +36,14 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
+	# Staggered: ride out the knockback, no chase/attack
+	if _stagger_time > 0.0:
+		_stagger_time -= delta
+		velocity.x = move_toward(velocity.x, 0.0, move_speed * 1.5)
+		velocity.z = move_toward(velocity.z, 0.0, move_speed * 1.5)
+		move_and_slide()
+		return
+
 	if _atk_cd > 0.0:
 		_atk_cd -= delta
 
@@ -46,11 +55,9 @@ func _physics_process(delta: float) -> void:
 		var dir := to_player.normalized()
 
 		if dist > stop_distance:
-			# Chase
 			velocity.x = dir.x * move_speed
 			velocity.z = dir.z * move_speed
 		else:
-			# In range — hold and attack
 			velocity.x = move_toward(velocity.x, 0.0, move_speed)
 			velocity.z = move_toward(velocity.z, 0.0, move_speed)
 			if dist <= attack_range and _atk_cd <= 0.0:
@@ -70,7 +77,6 @@ func _get_player() -> Node3D:
 
 func _attack(player: Node) -> void:
 	_atk_cd = attack_cooldown
-	# quick lunge for readability
 	var t := create_tween()
 	t.tween_property(mesh, "position:z", -0.35, 0.08)
 	t.tween_property(mesh, "position:z", 0.0, 0.14)
@@ -85,14 +91,22 @@ func take_hit(damage: int) -> void:
 	if health <= 0:
 		_die()
 	else:
-		_knockback()
+		_knockback_anim()
+
+func stagger(dir: Vector3) -> void:
+	if _down:
+		return
+	_stagger_time = 0.35
+	_atk_cd = max(_atk_cd, 0.6)
+	velocity = dir.normalized() * 7.0
+	velocity.y = 0.0
 
 func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
 
-func _knockback() -> void:
+func _knockback_anim() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "rotation:x", deg_to_rad(18.0), 0.05)
 	t.tween_property(mesh, "rotation:x", 0.0, 0.15)

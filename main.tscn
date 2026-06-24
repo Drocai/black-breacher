@@ -36,12 +36,30 @@ sky = SubResource("Sky_res")
 ambient_light_source = 3
 tonemap_mode = 2
 
+[sub_resource type="FastNoiseLite" id="FNL_wall"]
+frequency = 0.2
+
+[sub_resource type="NoiseTexture2D" id="Noise_wall"]
+noise = SubResource("FNL_wall")
+seamless = true
+
+[sub_resource type="FastNoiseLite" id="FNL_crate"]
+frequency = 0.35
+
+[sub_resource type="NoiseTexture2D" id="Noise_crate"]
+noise = SubResource("FNL_crate")
+seamless = true
+
 [sub_resource type="StandardMaterial3D" id="Mat_wall"]
-albedo_color = Color(0.4, 0.38, 0.36, 1)
+albedo_color = Color(0.62, 0.6, 0.57, 1)
+albedo_texture = SubResource("Noise_wall")
+uv1_scale = Vector3(6, 6, 6)
 roughness = 0.95
 
 [sub_resource type="StandardMaterial3D" id="Mat_crate"]
-albedo_color = Color(0.45, 0.32, 0.18, 1)
+albedo_color = Color(0.6, 0.43, 0.24, 1)
+albedo_texture = SubResource("Noise_crate")
+uv1_scale = Vector3(2, 2, 2)
 roughness = 0.8
 
 [sub_resource type="StandardMaterial3D" id="Mat_objective"]

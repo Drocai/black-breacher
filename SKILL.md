@@ -42,7 +42,9 @@ description: >-
 
 > Status: implemented and **headless-validated** (clean import + 40-frame run, zero errors) via the feature-branch PR `feature/breach-loop`. **Pending Derrick's in-editor F5 playtest** before calling it confirmed-working.
 
-**Next milestone (NEEDS Derrick's tools):** a real signature door-kick / halligan animation and the character texture pass — both require Meshy/Blender, not code. For whoever animates the kick, the rig's leg bones are `RightUpLeg / RightLeg / RightFoot / RightToeBase` (full bone + clip list confirmed via headless inspect). The room behind the door, breach juice (sound + dust + camera shake), and a reactive enemy are all in as of this pass.
+**Animation set expanded (June 2026):** swapped in a new `breacher.glb` from Meshy with kicks + more punches (same 24-bone rig, all old clips kept). New clips: `Spartan_Kick`, `High_Kick`, `Step_in_High_Kick`, `Boxing_Guard_Right_Straight_Kick`, `Left_Hook_from_Guard`, `Right_Upper_Hook_from_Guard`, `Right_Uppercut_from_Guard`, `Charged_Upward_Slash`, `Dodge_and_Counter`. Wired so far: **breach = `Spartan_Kick`** (real door-kick, no Blender needed), **J/left-click = 3-hit punch combo** (jab→hook→uppercut), **right-click = `High_Kick`** heavy hit. Still unused & available: `Step_in_High_Kick`, `Dodge_and_Counter`, `Charged_Upward_Slash`, extra hooks.
+
+**Still NEEDS external tools:** the character texture pass (Meshy auto-paint) and a jump clip (none in the set). Character is still gray clay.
 
 ---
 
@@ -239,13 +241,13 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 | + | Jump (Space), training dummy + jab hit-detection, textured noise floor | ✅ done |
 | + | Room behind the door + reactive enemy inside it (`enemy.tscn` / `enemy.gd`) | ✅ done |
 | + | Breach juice: `breach.wav` (synth placeholder), dust GPUParticles3D, camera shake | ✅ done — swap `breach.wav` for a real sound anytime |
-| **G** | Signature door-kick / halligan anim — rig legs: `RightUpLeg/RightLeg/RightFoot` | ▶ external (Meshy/Blender) |
+| **G** | Signature door-kick (`Spartan_Kick`) + combo punches + heavy kick | ✅ done (Meshy clips, no Blender) |
 | **G** | Jump animation clip (none in rig) | ▶ external (Meshy/Blender) |
 | later | CHARACTER texture pass (Meshy AI auto-paint → re-export → swap breacher.glb) | deferred (environment is textured; the character is still gray clay) |
 | later | Custom signature anims: real halligan door-kick + halligan swing (not in Meshy library — build later) | deferred |
 | later | GitHub `black-breacher` repo via Claude Code (kills manual folder copying) | recommended |
 
-**Resume point:** **F5** and play the loop — WASD move, Shift run, **Space jump**, **J / left-click jab** (topple the dummy), **F breach** the door, then walk into the room and drop the red enemy. Next work needs Derrick's tools: the signature door-kick anim, a jump clip, and the character texture pass (all Meshy/Blender).
+**Resume point:** **F5** and play — WASD move, Shift run, **Space jump**, **J / left-click = punch combo**, **right-click = heavy kick**, **F = Spartan-kick breach** the door, then clear the room of 3 enemies. Remaining external work: character texture pass + a jump clip (both Meshy). Plenty of unused clips to wire into combat (`Dodge_and_Counter`, `Charged_Upward_Slash`, `Step_in_High_Kick`).
 
 ---
 

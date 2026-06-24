@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bbenemyranged01"]
+[gd_scene load_steps=9 format=3 uid="uid://ecppb8swvwuq"]
 
 [ext_resource type="Script" path="res://enemy_ranged.gd" id="1_er"]
 [ext_resource type="PackedScene" path="res://projectile.tscn" id="2_proj"]
@@ -11,9 +11,27 @@ height = 1.8
 radius = 0.4
 height = 1.8
 
+[sub_resource type="FastNoiseLite" id="FNL_er"]
+frequency = 0.4
+
+[sub_resource type="NoiseTexture2D" id="Noise_er"]
+noise = SubResource("FNL_er")
+seamless = true
+
 [sub_resource type="StandardMaterial3D" id="Mat_er"]
-albedo_color = Color(0.5, 0.2, 0.7, 1)
+albedo_color = Color(0.55, 0.22, 0.75, 1)
+albedo_texture = SubResource("Noise_er")
+uv1_scale = Vector3(3, 3, 3)
 roughness = 0.7
+
+[sub_resource type="SphereMesh" id="Head_mesh"]
+radius = 0.28
+height = 0.56
+
+[sub_resource type="StandardMaterial3D" id="Mat_head"]
+albedo_color = Color(0.12, 0.1, 0.16, 1)
+metallic = 0.3
+roughness = 0.4
 
 [node name="EnemyRanged" type="CharacterBody3D"]
 script = ExtResource("1_er")
@@ -23,6 +41,11 @@ projectile_scene = ExtResource("2_proj")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 mesh = SubResource("Cap_mesh")
 material_override = SubResource("Mat_er")
+
+[node name="Head" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+mesh = SubResource("Head_mesh")
+material_override = SubResource("Mat_head")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

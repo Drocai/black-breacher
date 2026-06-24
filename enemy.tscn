@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bbenemy00001"]
+[gd_scene load_steps=10 format=3 uid="uid://bbenemy00001"]
 
 [ext_resource type="Script" path="res://enemy.gd" id="1_enemy"]
 [ext_resource type="AudioStream" path="res://hit.wav" id="2_hit"]
@@ -11,9 +11,27 @@ height = 1.8
 radius = 0.4
 height = 1.8
 
+[sub_resource type="FastNoiseLite" id="FNL_enemy"]
+frequency = 0.4
+
+[sub_resource type="NoiseTexture2D" id="Noise_enemy"]
+noise = SubResource("FNL_enemy")
+seamless = true
+
 [sub_resource type="StandardMaterial3D" id="Mat_enemy"]
-albedo_color = Color(0.5, 0.12, 0.12, 1)
+albedo_color = Color(0.55, 0.14, 0.14, 1)
+albedo_texture = SubResource("Noise_enemy")
+uv1_scale = Vector3(3, 3, 3)
 roughness = 0.7
+
+[sub_resource type="SphereMesh" id="Head_mesh"]
+radius = 0.28
+height = 0.56
+
+[sub_resource type="StandardMaterial3D" id="Mat_head"]
+albedo_color = Color(0.1, 0.1, 0.12, 1)
+metallic = 0.3
+roughness = 0.4
 
 [node name="Enemy" type="CharacterBody3D"]
 script = ExtResource("1_enemy")
@@ -22,6 +40,11 @@ script = ExtResource("1_enemy")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 mesh = SubResource("Cap_mesh")
 material_override = SubResource("Mat_enemy")
+
+[node name="Head" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+mesh = SubResource("Head_mesh")
+material_override = SubResource("Mat_head")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

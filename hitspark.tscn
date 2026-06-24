@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://bbhitspark01"]
+[gd_scene format=3 uid="uid://bbhitspark01"]
 
 [ext_resource type="Script" path="res://hitspark.gd" id="1_hs"]
 

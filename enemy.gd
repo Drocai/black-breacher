@@ -15,6 +15,8 @@ extends CharacterBody3D
 @export var attack_cooldown: float = 1.3
 
 @export var pickup_drop_chance: float = 0.5
+@export var knockback_force: float = 4.0
+@export var hitstun_time: float = 0.18
 
 var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -45,8 +47,8 @@ func _physics_process(delta: float) -> void:
 	# Staggered: ride out the knockback, no chase/attack
 	if _stagger_time > 0.0:
 		_stagger_time -= delta
-		velocity.x = move_toward(velocity.x, 0.0, move_speed * 1.5)
-		velocity.z = move_toward(velocity.z, 0.0, move_speed * 1.5)
+		velocity.x = move_toward(velocity.x, 0.0, move_speed * 0.5)
+		velocity.z = move_toward(velocity.z, 0.0, move_speed * 0.5)
 		move_and_slide()
 		return
 
@@ -111,6 +113,15 @@ func take_hit(damage: int) -> void:
 		_die()
 	else:
 		_knockback_anim()
+		_apply_knockback()
+
+func _apply_knockback() -> void:
+	var p := _get_player()
+	if p:
+		var away: Vector3 = global_position - p.global_position
+		away.y = 0.0
+		velocity = away.normalized() * knockback_force
+	_stagger_time = max(_stagger_time, hitstun_time)
 
 func stagger(dir: Vector3) -> void:
 	if _down:

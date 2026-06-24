@@ -39,7 +39,6 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var anim: AnimationPlayer = $breacher/AnimationPlayer
 @onready var mesh: Node3D = $breacher
-@onready var camera: Camera3D = $Camera3D
 @onready var jab_sound: AudioStreamPlayer = $JabSound
 
 var health: int
@@ -69,15 +68,8 @@ var _invuln: float = 0.0
 var _blocking: bool = false
 var _block_time: float = 0.0
 
-# Camera shake
-var _cam_base: Transform3D
-var _shake_time: float = 0.0
-var _shake_dur: float = 0.0
-var _shake_amp: float = 0.0
-
 func _ready() -> void:
 	add_to_group("player")
-	_cam_base = camera.transform
 	health = max_health
 	_spawn = global_transform
 	_apply_character_skin()
@@ -142,7 +134,6 @@ func _physics_process(delta: float) -> void:
 		velocity.x = _dodge_dir.x * dodge_speed
 		velocity.z = _dodge_dir.z * dodge_speed
 		move_and_slide()
-		_update_shake(delta)
 		return
 
 	# Block (hold Ctrl): root in place, soak/parry incoming damage
@@ -154,7 +145,6 @@ func _physics_process(delta: float) -> void:
 		if anim.has_animation("Boxing_Guard_Prep_Straight_Punch") and anim.current_animation != "Boxing_Guard_Prep_Straight_Punch":
 			anim.play("Boxing_Guard_Prep_Straight_Punch")
 		move_and_slide()
-		_update_shake(delta)
 		return
 	else:
 		_block_time = 0.0
@@ -175,7 +165,6 @@ func _physics_process(delta: float) -> void:
 
 	_update_locomotion_anim(direction != Vector3.ZERO, running)
 	move_and_slide()
-	_update_shake(delta)
 
 func _current_input_dir() -> Vector3:
 	var d := Vector2.ZERO
@@ -248,6 +237,7 @@ func _apply_melee_hit() -> void:
 		if jab_sound:
 			jab_sound.play()
 		_hitstop()
+		shake(0.06, 0.12)
 
 # --- Special launcher (E): big hit + knockback ---
 func _try_special() -> void:
@@ -307,21 +297,11 @@ func _finish_breach() -> void:
 		shake(0.12, 0.35)
 	_pending_breach = null
 
-# --- Camera shake ---
+# --- Camera shake (forwarded to the follow-camera rig) ---
 func shake(amplitude: float = 0.12, duration: float = 0.3) -> void:
-	_shake_amp = amplitude
-	_shake_dur = duration
-	_shake_time = duration
-
-func _update_shake(delta: float) -> void:
-	if _shake_time <= 0.0:
-		camera.transform = _cam_base
-		return
-	_shake_time -= delta
-	var falloff := _shake_time / _shake_dur
-	var offset := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * _shake_amp * falloff
-	camera.transform = _cam_base
-	camera.transform.origin += offset
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(amplitude, duration)
 
 # --- Damage / respawn ---
 func heal(amount: int) -> void:
@@ -371,8 +351,8 @@ func _respawn() -> void:
 	velocity = Vector3.ZERO
 	health = max_health
 
-func _play_action(anim_name: String) -> void:
+func _play_action(anim_name: String, speed: float = 1.4) -> void:
 	if not anim.has_animation(anim_name):
 		return
-	anim.play(anim_name)
-	attack_timer = anim.get_animation(anim_name).length
+	anim.play(anim_name, -1, speed)
+	attack_timer = anim.get_animation(anim_name).length / speed

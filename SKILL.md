@@ -257,6 +257,14 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 
 **Combat depth (June 2026):** **ranged enemies** (`enemy_ranged`) that keep distance and lob **projectiles** (`projectile`); enemies drop spinning **health pickups** (`pickup`) on death; player **auto-faces the nearest enemy** when attacking; per-enemy hit sound; enemies cache the player ref (perf). New scripts: `enemy_ranged.gd`, `projectile.gd`, `pickup.gd` (+ scenes).
 
+**Systems pass (June 2026):**
+- **`Game` autoload** (`game.gd`) holds run state (kills/score/wave) + spawns shared FX. Reset by the wave manager on scene load.
+- **Juice:** hitstop on impact, floating damage numbers (`damage_number`), hit sparks (`hitspark`), score/kills on HUD.
+- **Block/parry:** hold **Ctrl** to block (cuts damage); block within 0.2s = parry (negate + stagger). `Boxing_Guard_Prep_Straight_Punch` is the guard pose.
+- **Waves:** `wave_manager.gd` (on a node with Marker3D spawn points) spawns 3 escalating waves once the player enters the arena (z < -4); tracks its own `_alive` list so the pre-placed Boss doesn't block wave progress.
+- **Boss room:** the back alcove is enlarged (8×8) into a boss arena past Door2; scaled-up Boss (16 HP) guards the objective. Removed the old training dummy.
+- Re-skinned the character with a sharper Meshy prompt.
+
 **Resume point:** **F5** and play the full loop (textured character + environment, full moveset, win condition). Remaining: a **jump animation clip** (no Meshy jump anim yet — needs a Meshy export) and a **proper enemy navmesh** (a `NavigationRegion3D` bakes to 0 polys over CSG — needs the level rebuilt with real CollisionShape3D/MeshInstance boxes; interim sidestep avoidance is in `enemy.gd`). Then: balance the 6-enemy fight.
 
 ---

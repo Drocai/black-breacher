@@ -57,6 +57,11 @@ func _physics_process(delta: float) -> void:
 		if dist > stop_distance:
 			velocity.x = dir.x * move_speed
 			velocity.z = dir.z * move_speed
+			# Snagged on a wall/crate last frame? veer sideways to slip around it.
+			if is_on_wall():
+				var perp := Vector3(-dir.z, 0.0, dir.x)
+				velocity.x += perp.x * move_speed
+				velocity.z += perp.z * move_speed
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, move_speed)
 			velocity.z = move_toward(velocity.z, 0.0, move_speed)

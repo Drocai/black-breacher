@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://hud.gd" id="6_hud"]
 [ext_resource type="Script" path="res://objective.gd" id="7_obj"]
 [ext_resource type="PackedScene" path="res://enemy_ranged.tscn" id="9_er"]
+[ext_resource type="Script" path="res://wave_manager.gd" id="10_wave"]
 
 [sub_resource type="FastNoiseLite" id="FNL_floor"]
 frequency = 0.03
@@ -152,9 +153,6 @@ environment = SubResource("Env")
 [node name="Door" parent="." unique_id=1107411609 instance=ExtResource("2_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
 
-[node name="Dummy" parent="." unique_id=461311846 instance=ExtResource("3_dummy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -2)
-
 [node name="Room" type="Node3D" parent="."]
 
 [node name="FrontL" type="CSGBox3D" parent="Room"]
@@ -227,40 +225,40 @@ size = Vector3(1.2, 1.2, 1.2)
 material = SubResource("Mat_crate")
 
 [node name="AlcoveBack" type="CSGBox3D" parent="Room"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -25)
 use_collision = true
-size = Vector3(6.3, 4, 0.3)
+size = Vector3(8.3, 4, 0.3)
 material = SubResource("Mat_wall")
 
 [node name="AlcoveL" type="CSGBox3D" parent="Room"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 2, -19.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -21)
 use_collision = true
-size = Vector3(0.3, 4, 5)
+size = Vector3(0.3, 4, 8)
 material = SubResource("Mat_wall")
 
 [node name="AlcoveR" type="CSGBox3D" parent="Room"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2, -19.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -21)
 use_collision = true
-size = Vector3(0.3, 4, 5)
+size = Vector3(0.3, 4, 8)
 material = SubResource("Mat_wall")
 
 [node name="AlcoveCeiling" type="CSGBox3D" parent="Room"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -19.5)
-size = Vector3(6.3, 0.3, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -21)
+size = Vector3(8.3, 0.3, 8)
 material = SubResource("Mat_wall")
 
 [node name="AlcoveLight" type="OmniLight3D" parent="Room"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -19.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -21)
 light_energy = 2.0
-omni_range = 10.0
+omni_range = 12.0
 
 [node name="Objective" type="CSGBox3D" parent="Room"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -20.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -23)
 size = Vector3(0.8, 0.8, 0.8)
 material = SubResource("Mat_objective")
 
 [node name="ObjectiveGlow" type="OmniLight3D" parent="Room"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -20.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -23)
 light_color = Color(0.2, 1, 0.8, 1)
 light_energy = 3.0
 omni_range = 5.0
@@ -268,35 +266,33 @@ omni_range = 5.0
 [node name="Door2" parent="." instance=ExtResource("2_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -17)
 
-[node name="Enemy" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -9)
-
-[node name="Enemy2" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2, 0, -11)
-
-[node name="Enemy3" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, 0, -13)
-
-[node name="Enemy4" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -15.5)
-
-[node name="Enemy5" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -7.5)
-
-[node name="EnemyElite" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20)
-max_health = 10
+[node name="Boss" parent="." instance=ExtResource("4_enemy")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 0, 0, -22)
+max_health = 16
 move_speed = 1.8
-attack_damage = 14
+attack_damage = 16
+pickup_drop_chance = 1.0
 
-[node name="RangedA" parent="." instance=ExtResource("9_er")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -13)
+[node name="WaveManager" type="Node3D" parent="."]
+script = ExtResource("10_wave")
 
-[node name="RangedB" parent="." instance=ExtResource("9_er")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -15)
+[node name="SpawnA" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, -9)
+
+[node name="SpawnB" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -9)
+
+[node name="SpawnC" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -13)
+
+[node name="SpawnD" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, -15)
+
+[node name="SpawnE" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -15)
 
 [node name="ObjectiveZone" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -20.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -23)
 script = ExtResource("7_obj")
 
 [node name="Shape" type="CollisionShape3D" parent="ObjectiveZone"]

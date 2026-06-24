@@ -42,11 +42,11 @@ OUTDIR = os.path.join(PROJECT, "_meshy_out")
 BASE = "https://api.meshy.ai/openapi/v1/retexture"
 
 PROMPT = (
-    "Gritty ex-military door breacher character. Weathered scarred face, shaved "
-    "head with short stubble. Dark olive-black open work jacket over a charcoal "
-    "grey henley shirt. Faded olive-green cargo pants. Scuffed black leather "
-    "combat boots. A brass key on a bootlace around the neck. Realistic worn "
-    "fabric, leather and skin; muted, desaturated, gritty tones."
+    "Photorealistic gritty ex-military door breacher. Heavily weathered scarred "
+    "face, short stubble, shaved head. Worn open dark olive-black tactical work "
+    "jacket over a charcoal henley. Faded olive ripstop cargo pants. Scuffed "
+    "black leather combat boots. Brass key on a knotted bootlace at the neck. "
+    "Realistic skin, fabric weave, worn leather, grime; muted cinematic grade."
 )
 
 

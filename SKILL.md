@@ -44,7 +44,7 @@ description: >-
 
 **Animation set expanded (June 2026):** swapped in a new `breacher.glb` from Meshy with kicks + more punches (same 24-bone rig, all old clips kept). New clips: `Spartan_Kick`, `High_Kick`, `Step_in_High_Kick`, `Boxing_Guard_Right_Straight_Kick`, `Left_Hook_from_Guard`, `Right_Upper_Hook_from_Guard`, `Right_Uppercut_from_Guard`, `Charged_Upward_Slash`, `Dodge_and_Counter`. Wired so far: **breach = `Spartan_Kick`** (real door-kick, no Blender needed), **J/left-click = 3-hit punch combo** (jab→hook→uppercut), **right-click = `High_Kick`** heavy hit. Still unused & available: `Step_in_High_Kick`, `Dodge_and_Counter`, `Charged_Upward_Slash`, extra hooks.
 
-**Still NEEDS external tools:** the character texture pass (Meshy auto-paint) and a jump clip (none in the set). Character is still gray clay.
+**Character is now TEXTURED (June 2026)** — automated via `tools/meshy_retexture.py` (Meshy Retexture API). Gotcha: **retexture strips the rig/animations** (returns a static mesh), so the pipeline keeps the animated `breacher.glb` and applies the returned PBR maps (`textures/` → `breacher_material.tres`) as a `material_override` on the `char1` surface at runtime (`player.gd _apply_character_skin()`). Only external item left: a **jump animation clip** (none in the Meshy set).
 
 ---
 
@@ -251,9 +251,9 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 
 **Level (June 2026):** floor is 40×40; the room is now a big enclosed space (4m walls + ceiling, 2 interior lights, 3 cover crates) with a **2nd breach door** at the back into an **alcove** holding a glowing **objective** + an **elite enemy** (10 HP). 6 enemies total. Loop: breach front → fight through cover → breach back → drop the elite → AREA CLEAR.
 
-**Autonomy unlocked:** Meshy **Retexture API** accepts our own `breacher.glb` (text/image prompt, PBR, 4K) — with an API key the character texture pass (#6) becomes a scripted upload→retexture→download→swap→PR. Blender MCP (start its server) covers procedural materials / mesh / anim ops.
+**Autonomy:** `tools/meshy_retexture.py` drives the Meshy Retexture API (reads `MESHY_API_KEY` from env). Because retexture returns a static (un-rigged) mesh, the pipeline keeps the rigged glb and applies the PBR maps as a material — re-run anytime to re-skin. Blender MCP (start its server) covers procedural materials / mesh / anim ops.
 
-**Resume point:** **F5** and play the full loop above. Remaining external: jump clip (no Meshy jump anim yet) + the character texture pass (scriptable via Meshy API key). Known rough edge: enemies have no navmesh, so they can snag on cover crates — NavigationRegion3D is the fix.
+**Resume point:** **F5** and play the full loop above (Breacher is now textured). Remaining: a **jump animation clip** (no Meshy jump anim yet) and **enemy navmesh** (enemies snag on the cover crates — `NavigationRegion3D` is the fix). Also a level-complete trigger at the objective would round out the loop.
 
 ---
 

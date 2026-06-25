@@ -283,6 +283,12 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
 - **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
 
+**Harden + save/log + grab-throw (June 2026):**
+- **Save:** `Game` persists `best_score` + `missions_cleared` to `user://blackbreacher_save.cfg` (ConfigFile); loaded on boot, saved on mission clear (`Game.on_mission_cleared()`).
+- **Logging:** `Game.log_event()` → `[BB] ...` prints (boot, mission cleared, takedown, player down).
+- **Hardening:** `Engine.time_scale` normalized in both `Game._ready` and `player._ready` (so R during hitstop can't leave the game in slow-mo); null guards on `Game.spawn_*`.
+- **GRAB + THROW = V** (`player._try_grab_or_throw`): grab a melee enemy in front (`enemy.grab`), V again to **throw** (`enemy.throw`) — thrown body is ballistic (`_thrown` in `enemy._physics`), and `_thrown_impact()` does AoE damage + stagger to nearby enemies then dies. Throw clip = `Charged_Upward_Slash`. While holding, attacks/dodge/block are gated (`_held_enemy` in `_busy`). HUD shows BEST.
+
 **Stealth core landed (June 2026 — roadmap #1-4):** enemies have an `alerted` state; `start_alerted` (default true for wave/combat enemies) — **placed guards** set it false and start UNAWARE, scanning a vision cone (`initial_facing_deg`, `view_distance`, `view_dot`, `detect_time` in `enemy.gd::_update_unaware`). **Crouch-sneak = C** (toggle): slower (`sneak_speed`), silent (no footsteps), halves guard spot range (`player.sneaking`). **Stealth takedown:** attacking an unaware enemy in range (≤2.3m) is an instant kill (`_do_takedown`, uppercut finisher) — wired into `_try_jab`. Two unaware guards placed before the front door. HUD shows `[ SNEAKING ]`. Still TODO: LOS raycast, patrol routes, alarm spreading, dedicated takedown animation.
 
 **THEME DIRECTION (use for all future gameplay work):** "Black Breacher" = **Black** (stealth — sneaking in shadows, stealth missions, then coming up brutal) + **Breacher** (breaching doors, people, and items/containers). His **large size must read everywhere** — vs enemies, doors, items, in actions and fighting. Next 20-point roadmap covers stealth (light/shadow visibility, crouch, takedowns, vision cones, noise), breaching (grab/throw people, kick open containers, breach finishers, loud-vs-quiet entries), and size-relevance (shove-aside, hero framing, grab-and-throw, halligan weapon).

@@ -28,6 +28,7 @@ func _process(_delta: float) -> void:
 
 func _advance() -> void:
 	Game.score += 500  # mission clear bonus
+	Game.on_mission_cleared()
 	await get_tree().create_timer(2.5).timeout
 	Game.mission += 1
 	get_tree().reload_current_scene()

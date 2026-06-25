@@ -26,7 +26,7 @@ func _process(_delta: float) -> void:
 	var reached: bool = obj != null and obj.reached
 
 	if reached and Game.all_waves_done and group_enemies == 0:
-		status.text = "MISSION %d COMPLETE   SCORE %d   (next...)" % [Game.mission, Game.score]
+		status.text = "MISSION %d COMPLETE   SCORE %d   BEST %d" % [Game.mission, Game.score, Game.best_score]
 	elif Game.all_waves_done:
 		if group_enemies > 0:
 			status.text = "MISSION %d   defeat the boss   KILLS %d" % [Game.mission, Game.kills]

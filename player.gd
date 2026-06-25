@@ -20,6 +20,7 @@ extends CharacterBody3D
 @export var run_speed: float = 7.0
 @export var rotation_speed: float = 12.0
 @export var jump_velocity: float = 5.0
+@export var sneak_speed: float = 2.0
 
 # --- Combat tunables ---
 @export var jab_range: float = 1.9
@@ -70,6 +71,7 @@ var _blocking: bool = false
 var _block_time: float = 0.0
 var _loco_speed: float = 1.0
 var _step_timer: float = 0.0
+var sneaking: bool = false
 
 func _ready() -> void:
 	add_to_group("player")
@@ -105,6 +107,8 @@ func _input(event: InputEvent) -> void:
 				_try_dodge()
 			KEY_F:
 				_try_breach()
+			KEY_C:
+				sneaking = not sneaking
 			KEY_R:
 				Game.full_reset()
 				get_tree().reload_current_scene()
@@ -161,6 +165,8 @@ func _physics_process(delta: float) -> void:
 	var direction := _current_input_dir()
 	var running := Input.is_physical_key_pressed(KEY_SHIFT)
 	var current_speed := run_speed if running else speed
+	if sneaking and not running:
+		current_speed = sneak_speed
 
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
@@ -206,7 +212,7 @@ func _update_locomotion_anim(moving: bool, running: bool, hspeed: float) -> void
 		anim.play("Axe_Breathe_and_Look_Around")
 
 func _tick_footsteps(delta: float, hspeed: float) -> void:
-	if footstep_sound == null or not is_on_floor() or hspeed < 0.5:
+	if footstep_sound == null or sneaking or not is_on_floor() or hspeed < 0.5:
 		_step_timer = 0.0
 		return
 	_step_timer -= delta
@@ -220,6 +226,10 @@ func _busy() -> bool:
 # --- Punch combo (J / left-click) ---
 func _try_jab() -> void:
 	if _busy():
+		return
+	var td := _find_takedown_target()
+	if td:
+		_do_takedown(td)
 		return
 	_face_nearest_enemy()
 	if _combo_timer <= 0.0:
@@ -340,6 +350,24 @@ func _face_nearest_enemy() -> void:
 	if nearest:
 		var to: Vector3 = nearest.global_position - global_position
 		mesh.rotation.y = atan2(to.x, to.z)
+
+# --- Stealth takedown: instant brutal kill on an unaware enemy ---
+func _find_takedown_target() -> Node3D:
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e is Node3D and ("alerted" in e) and not e.alerted:
+			if global_position.distance_to(e.global_position) <= 2.3:
+				return e
+	return null
+
+func _do_takedown(e: Node3D) -> void:
+	var to: Vector3 = e.global_position - global_position
+	mesh.rotation.y = atan2(to.x, to.z)
+	_play_action("Right_Uppercut_from_Guard")
+	shake(0.16, 0.25)
+	if jab_sound:
+		jab_sound.play()
+	if e.has_method("take_hit"):
+		e.take_hit(999)
 
 func _hitstop(duration: float = 0.06) -> void:
 	Engine.time_scale = 0.05

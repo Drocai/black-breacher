@@ -18,8 +18,18 @@ extends CharacterBody3D
 @export var knockback_force: float = 6.0
 @export var hitstun_time: float = 0.18
 
+# Stealth / awareness ("the Black"). Wave enemies start alerted; placed
+# guards start unaware (idle, scanning a cone) and can be stealth-killed.
+@export var start_alerted: bool = true
+@export var initial_facing_deg: float = 0.0
+@export var view_distance: float = 9.0
+@export var view_dot: float = 0.4
+@export var detect_time: float = 0.8
+
 var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var alerted: bool = true
+var _awareness: float = 0.0
 var _down: bool = false
 var _atk_cd: float = 0.0
 var _stagger_time: float = 0.0
@@ -33,6 +43,8 @@ const PICKUP_SCENE := preload("res://pickup.tscn")
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
+	alerted = start_alerted
+	mesh.rotation.y = deg_to_rad(initial_facing_deg)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -49,6 +61,12 @@ func _physics_process(delta: float) -> void:
 		_stagger_time -= delta
 		velocity.x = move_toward(velocity.x, 0.0, move_speed * 0.5)
 		velocity.z = move_toward(velocity.z, 0.0, move_speed * 0.5)
+		move_and_slide()
+		return
+
+	# Unaware: hold position and scan a vision cone; engage only once detected.
+	if not alerted:
+		_update_unaware(delta)
 		move_and_slide()
 		return
 
@@ -90,6 +108,26 @@ func _get_player() -> Node3D:
 	var arr := get_tree().get_nodes_in_group("player")
 	_player = arr[0] if arr.size() > 0 else null
 	return _player
+
+func _update_unaware(delta: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, move_speed)
+	velocity.z = move_toward(velocity.z, 0.0, move_speed)
+	var p := _get_player()
+	if p == null:
+		return
+	var to: Vector3 = p.global_position - global_position
+	to.y = 0.0
+	var dist := to.length()
+	var see := view_distance
+	if "sneaking" in p and p.sneaking:
+		see *= 0.4
+	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	if dist < see and fwd.dot(to.normalized()) > view_dot:
+		_awareness += delta / detect_time
+		if _awareness >= 1.0:
+			alerted = true
+	else:
+		_awareness = maxf(0.0, _awareness - delta * 0.6)
 
 func _attack(player: Node) -> void:
 	_atk_cd = attack_cooldown

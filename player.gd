@@ -35,6 +35,8 @@ extends CharacterBody3D
 @export var max_health: int = 100
 @export var block_damage_reduction: float = 0.25
 @export var parry_window: float = 0.2
+@export var grab_range: float = 2.6
+@export var throw_force: float = 14.0
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -72,8 +74,10 @@ var _block_time: float = 0.0
 var _loco_speed: float = 1.0
 var _step_timer: float = 0.0
 var sneaking: bool = false
+var _held_enemy: Node3D = null
 
 func _ready() -> void:
+	Engine.time_scale = 1.0   # normalize in case a reload happened mid-hitstop
 	add_to_group("player")
 	health = max_health
 	_spawn = global_transform
@@ -109,6 +113,8 @@ func _input(event: InputEvent) -> void:
 				_try_breach()
 			KEY_C:
 				sneaking = not sneaking
+			KEY_V:
+				_try_grab_or_throw()
 			KEY_R:
 				Game.full_reset()
 				get_tree().reload_current_scene()
@@ -119,6 +125,8 @@ func _input(event: InputEvent) -> void:
 			_try_kick()
 
 func _physics_process(delta: float) -> void:
+	_update_hold()
+
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -149,7 +157,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Block (hold Ctrl): root in place, soak/parry incoming damage
-	_blocking = Input.is_physical_key_pressed(KEY_CTRL) and is_on_floor() and attack_timer <= 0.0
+	_blocking = Input.is_physical_key_pressed(KEY_CTRL) and is_on_floor() and attack_timer <= 0.0 and _held_enemy == null
 	if _blocking:
 		_block_time += delta
 		velocity.x = move_toward(velocity.x, 0.0, run_speed)
@@ -221,7 +229,7 @@ func _tick_footsteps(delta: float, hspeed: float) -> void:
 		_step_timer = clampf(2.6 / maxf(hspeed, 0.1), 0.28, 0.6)
 
 func _busy() -> bool:
-	return attack_timer > 0.0 or _dodge_time_left > 0.0 or _blocking
+	return attack_timer > 0.0 or _dodge_time_left > 0.0 or _blocking or _held_enemy != null
 
 # --- Punch combo (J / left-click) ---
 func _try_jab() -> void:
@@ -299,7 +307,7 @@ func _apply_special_hit() -> void:
 
 # --- Dodge (Q): i-frame dash ---
 func _try_dodge() -> void:
-	if _dodge_cd > 0.0 or _dodge_time_left > 0.0 or attack_timer > 0.0:
+	if _dodge_cd > 0.0 or _dodge_time_left > 0.0 or attack_timer > 0.0 or _held_enemy != null:
 		return
 	var dir := _current_input_dir()
 	if dir == Vector3.ZERO:
@@ -368,6 +376,62 @@ func _do_takedown(e: Node3D) -> void:
 		jab_sound.play()
 	if e.has_method("take_hit"):
 		e.take_hit(999)
+	Game.log_event("stealth takedown")
+
+# --- Grab & throw (breaching bodies) ---
+func _try_grab_or_throw() -> void:
+	if is_instance_valid(_held_enemy):
+		_do_throw()
+	else:
+		_try_grab()
+
+func _try_grab() -> void:
+	if _busy():
+		return
+	var target := _find_grab_target()
+	if target == null:
+		return
+	_held_enemy = target
+	target.grab(self)
+	var to: Vector3 = target.global_position - global_position
+	mesh.rotation.y = atan2(to.x, to.z)
+	_play_action("Push_Forward_and_Stop")
+
+func _do_throw() -> void:
+	if not is_instance_valid(_held_enemy):
+		_held_enemy = null
+		return
+	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	if _held_enemy.has_method("throw"):
+		_held_enemy.throw(fwd, throw_force)
+	_held_enemy = null
+	_play_action("Charged_Upward_Slash")
+	shake(0.2, 0.3)
+	_hitstop(0.08)
+
+func _find_grab_target() -> Node3D:
+	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	var best := grab_range
+	var found: Node3D = null
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if not (e is Node3D) or not e.has_method("grab"):
+			continue
+		var to: Vector3 = e.global_position - global_position
+		to.y = 0.0
+		var d := to.length()
+		if d <= best and fwd.dot(to.normalized()) > 0.2:
+			best = d
+			found = e
+	return found
+
+func _update_hold() -> void:
+	if _held_enemy == null:
+		return
+	if not is_instance_valid(_held_enemy):
+		_held_enemy = null
+		return
+	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	_held_enemy.global_position = global_position + fwd * 1.4 + Vector3(0.0, 1.0, 0.0)
 
 func _hitstop(duration: float = 0.06) -> void:
 	Engine.time_scale = 0.05
@@ -402,6 +466,7 @@ func _parry() -> void:
 				e.stagger(Vector3(to.x, 0.0, to.z).normalized())
 
 func _respawn() -> void:
+	Game.log_event("player down — respawn (score %d)" % Game.score)
 	global_transform = _spawn
 	velocity = Vector3.ZERO
 	health = max_health

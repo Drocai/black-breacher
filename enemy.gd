@@ -17,6 +17,7 @@ extends CharacterBody3D
 @export var pickup_drop_chance: float = 0.5
 @export var knockback_force: float = 6.0
 @export var hitstun_time: float = 0.18
+@export var throw_impact_damage: int = 6
 
 # Stealth / awareness ("the Black"). Wave enemies start alerted; placed
 # guards start unaware (idle, scanning a cone) and can be stealth-killed.
@@ -33,6 +34,9 @@ var _awareness: float = 0.0
 var _down: bool = false
 var _atk_cd: float = 0.0
 var _stagger_time: float = 0.0
+var _grabbed: bool = false
+var _thrown: bool = false
+var _thrown_time: float = 0.0
 var _player: Node3D
 
 const PICKUP_SCENE := preload("res://pickup.tscn")
@@ -47,8 +51,20 @@ func _ready() -> void:
 	mesh.rotation.y = deg_to_rad(initial_facing_deg)
 
 func _physics_process(delta: float) -> void:
+	# Held by the player — the player positions us; no own physics.
+	if _grabbed:
+		return
+
 	if not is_on_floor():
 		velocity.y -= gravity * delta
+
+	# Thrown — ballistic until we hit ground/wall, then a brutal AoE impact.
+	if _thrown:
+		_thrown_time += delta
+		move_and_slide()
+		if _thrown_time > 0.12 and (is_on_floor() or is_on_wall()):
+			_thrown_impact()
+		return
 
 	if _down:
 		velocity.x = 0.0
@@ -168,6 +184,35 @@ func stagger(dir: Vector3) -> void:
 	_atk_cd = max(_atk_cd, 0.6)
 	velocity = dir.normalized() * 7.0
 	velocity.y = 0.0
+
+# --- Grabbed / thrown (player breaches bodies) ---
+func grab(_holder: Node) -> void:
+	if _down:
+		return
+	_grabbed = true
+	alerted = true
+	$CollisionShape3D.set_deferred("disabled", true)
+
+func throw(dir: Vector3, force: float) -> void:
+	_grabbed = false
+	_thrown = true
+	_thrown_time = 0.0
+	$CollisionShape3D.set_deferred("disabled", false)
+	velocity = dir.normalized() * force + Vector3(0.0, 4.0, 0.0)
+
+func _thrown_impact() -> void:
+	_thrown = false
+	Game.spawn_hitspark(global_position + Vector3(0.0, 0.5, 0.0))
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e == self or not (e is Node3D) or not e.has_method("take_hit"):
+			continue
+		if global_position.distance_to(e.global_position) < 2.5:
+			e.take_hit(throw_impact_damage)
+			if e.has_method("stagger"):
+				var d: Vector3 = e.global_position - global_position
+				e.stagger(Vector3(d.x, 0.0, d.z).normalized())
+	Game.add_kill()
+	_die()
 
 func _flash() -> void:
 	var t := create_tween()

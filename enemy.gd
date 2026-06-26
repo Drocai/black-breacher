@@ -37,6 +37,7 @@ var _patrol_origin: Vector3 = Vector3.ZERO
 var _down: bool = false
 var _atk_cd: float = 0.0
 var _stagger_time: float = 0.0
+var _splatted: bool = false
 var _grabbed: bool = false
 var _thrown: bool = false
 var _thrown_time: float = 0.0
@@ -88,9 +89,13 @@ func _physics_process(delta: float) -> void:
 	# Staggered: ride out the knockback, no chase/attack
 	if _stagger_time > 0.0:
 		_stagger_time -= delta
+		var pre_speed := Vector2(velocity.x, velocity.z).length()
 		velocity.x = move_toward(velocity.x, 0.0, move_speed * 0.5)
 		velocity.z = move_toward(velocity.z, 0.0, move_speed * 0.5)
 		move_and_slide()
+		# Hurled into a wall hard enough → crunching wall-splat.
+		if not _splatted and pre_speed > 5.0 and is_on_wall():
+			_wall_splat()
 		return
 
 	# Unaware: hold position and scan a vision cone; engage only once detected.
@@ -261,12 +266,29 @@ func stagger(dir: Vector3) -> void:
 	if _down:
 		return
 	_stagger_time = 0.35
+	_splatted = false
 	_atk_cd = max(_atk_cd, 0.6)
 	velocity = dir.normalized() * 7.0
 	velocity.y = 0.0
 
 func is_staggered() -> bool:
 	return _stagger_time > 0.0
+
+# Slammed into a wall mid-knockback: extra crunch + spark + a little camera kick.
+func _wall_splat() -> void:
+	_splatted = true
+	velocity.x = 0.0
+	velocity.z = 0.0
+	Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0))
+	Game.spawn_damage_number(global_position + Vector3(0.0, 1.8, 0.0), 2)
+	_flash()
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(0.12, 0.2)
+	health -= 2
+	if health <= 0:
+		Game.add_kill()
+		_die()
 
 # --- Grabbed / thrown (player breaches bodies) ---
 func grab(_holder: Node) -> void:

@@ -283,6 +283,11 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
 - **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
 
+**Stealth-vs-loud + variety (June 2026):**
+- **Ghost bonus:** `Game.detected` flips true when any guard spots the player; breaching the **entry door** (`door.is_entry=true`, front door) calls `Game.evaluate_stealth()` → **+1000 silent-entry bonus** if undetected. HUD shows `UNDETECTED`/`DETECTED` pre-entry. Reset per mission.
+- **Enemy color tints:** `enemy.tint` (applied to the duplicated `_mat` in `_ready`) — wave manager tints heavy=steel-blue, fast=bright-yellow for at-a-glance type reads.
+- **Arena pillars** (CSGCylinder3D) for cover, LOS-breaking, and visual variety.
+
 **Combat readability (June 2026):** melee enemies now **telegraph** — `_begin_attack` starts a 0.4s wind-up (red glow via per-instance duplicated `_mat`, anticipation pull-back, holds position), then `_land_attack` only deals damage if the player is still in range — so block/parry/dodge/step-out all work as reactions. Red **hit-flash** (emission pulse) on every hit. Per-enemy material is duplicated in `_ready` so flashes don't bleed across instances.
 
 **Halligan + patrols (June 2026):**

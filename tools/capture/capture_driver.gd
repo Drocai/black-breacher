@@ -8,6 +8,7 @@ extends Node
 
 var _t: float = 0.0
 var _phase: int = 0
+var _slammed: bool = false
 
 func _ready() -> void:
 	Game.full_reset()
@@ -41,7 +42,13 @@ func _physics_process(delta: float) -> void:
 			var enemies := get_tree().get_nodes_in_group("enemy")
 			if enemies.size() > 0 and p != null and enemies[0] is Node3D:
 				enemies[0].global_position = p.global_position + Vector3(2.2, 0.0, 0.0)
-			if _t > 2.5:
+			# Fire a slam mid-pose so dust/debris/shockwave are in-frame, and
+			# flash the damage overlay, for a real impact-moment screenshot.
+			if _t > 2.2 and not _slammed and p != null and p.has_method("_apply_seismic_slam"):
+				p._apply_seismic_slam()
+				_slammed = true
+			if _t > 2.55:
+				Game.hit_flash = 0.7
 				await _grab("user://bb_combat.png")
 				get_tree().quit()
 				_phase = 3

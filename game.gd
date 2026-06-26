@@ -11,6 +11,8 @@ const DMG_NUM := preload("res://damage_number.tscn")
 const SPARK := preload("res://hitspark.tscn")
 const EXPLOSION := preload("res://explosion.tscn")
 const SHOCKWAVE := preload("res://shockwave.tscn")
+const DUST := preload("res://dust_burst.tscn")
+const DEBRIS := preload("res://debris_burst.tscn")
 const SAVE_PATH := "user://blackbreacher_save.cfg"
 
 # Campaign arenas in order. mission 1 → index 0, etc. Past the last one,
@@ -34,6 +36,9 @@ var _combo_timer: float = 0.0
 # Transient on-screen toast (the HUD reads this) — e.g. upgrade pickups.
 var toast_text: String = ""
 var _toast_t: float = 0.0
+
+# Red damage-overlay intensity 0..1 (HUD reads this to flash when the player is hit).
+var hit_flash: float = 0.0
 
 # persistent
 var best_score: int = 0
@@ -111,6 +116,12 @@ func _process(delta: float) -> void:
 			combo = 0
 	if _toast_t > 0.0:
 		_toast_t -= delta
+	if hit_flash > 0.0:
+		hit_flash = move_toward(hit_flash, 0.0, delta * 2.2)
+
+# Register that the player was struck — drives the HUD red damage flash.
+func player_hit(severity: float) -> void:
+	hit_flash = clampf(maxf(hit_flash, severity), 0.0, 1.0)
 
 # Flash a short message on the HUD (e.g. "UPGRADE: VITALITY").
 func show_toast(msg: String, dur: float = 2.5) -> void:
@@ -195,9 +206,29 @@ func spawn_explosion(pos: Vector3) -> void:
 	var fx := EXPLOSION.instantiate()
 	scene.add_child(fx)
 	fx.global_position = pos
-	# A ground ring + a deep concussive bang sell the blast bigger.
+	# A ground ring + a deep concussive bang + dust/debris sell the blast bigger.
 	spawn_shockwave(pos + Vector3(0.0, 0.05, 0.0), Color(1.0, 0.55, 0.2), 5.0)
 	spawn_sound_3d(pos, "res://flashbang.wav", -2.0)
+	spawn_dust(pos + Vector3(0.0, 0.1, 0.0))
+	spawn_debris(pos + Vector3(0.0, 0.1, 0.0))
+
+# A low dust puff for heavy ground impacts (cosmetic, self-freeing).
+func spawn_dust(pos: Vector3) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var d := DUST.instantiate()
+	scene.add_child(d)
+	d.global_position = pos
+
+# A shower of debris chunks for heavy impacts (cosmetic, self-freeing).
+func spawn_debris(pos: Vector3) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var d := DEBRIS.instantiate()
+	scene.add_child(d)
+	d.global_position = pos
 
 # A flat expanding ground ring for heavy impacts (explosions, finishers,
 # boss slams). Purely cosmetic. Tunable color / radius per call.

@@ -52,6 +52,8 @@ func breach() -> void:
 		# breach lands with real weight.
 		Game.spawn_sound_3d(global_position, "res://breach_impact.wav", 0.0)
 		Game.spawn_shockwave(global_position + Vector3(0.0, 0.05, 0.0), Color(0.85, 0.85, 1.0), 3.0)
+		Game.spawn_dust(global_position + Vector3(0.0, 0.1, 0.0))
+		Game.spawn_debris(global_position + Vector3(0.0, 0.1, 0.0))
 
 	# Swing it open with a little overshoot for impact
 	var t := create_tween()

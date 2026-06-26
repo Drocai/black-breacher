@@ -280,6 +280,7 @@ func _wall_splat() -> void:
 	velocity.x = 0.0
 	velocity.z = 0.0
 	Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0))
+	Game.spawn_debris(global_position + Vector3(0.0, 0.4, 0.0))
 	Game.spawn_damage_number(global_position + Vector3(0.0, 1.8, 0.0), 2)
 	_flash()
 	var cam := get_tree().get_first_node_in_group("camera")

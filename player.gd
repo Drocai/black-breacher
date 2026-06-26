@@ -554,6 +554,7 @@ func _try_charge() -> void:
 	shake(0.15, 0.3)
 	_cam_fov_kick(5.0, 0.3)
 	Game.spawn_sound_3d(global_position, "res://heavy_step.wav", 1.0, 0.8)
+	Game.spawn_dust(global_position + Vector3(0.0, 0.1, 0.0))
 
 func _charge_sweep() -> void:
 	var hit_any := false
@@ -733,7 +734,13 @@ func take_damage(amount: int) -> void:
 		armor -= soak
 		amount -= soak
 	health -= amount
-	shake(0.08, 0.2)
+	# Hit reaction: red screen flash + a camera kick scaled to how hard it
+	# landed, plus a brief hitstop on heavy blows so getting struck reads.
+	var sev: float = clampf(float(amount) / float(maxi(max_health, 1)) * 4.0, 0.25, 1.0)
+	Game.player_hit(sev)
+	shake(0.1 + 0.35 * sev, 0.25)
+	if sev >= 0.6:
+		_hitstop(0.05)
 	if health <= 0:
 		_respawn()
 

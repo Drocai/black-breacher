@@ -15,6 +15,19 @@ extends CanvasLayer
 
 var _help_t: float = 7.0   # auto-show the controls for a few seconds at start
 var _help_pinned: bool = false
+var _dmg_overlay: ColorRect   # red full-screen flash when the player is hit
+
+func _ready() -> void:
+	# Build the red damage-flash overlay at runtime so all arenas get it
+	# without per-scene edits. Sits just above the vignette but below the
+	# text labels, so HUD readouts stay readable through the flash.
+	_dmg_overlay = ColorRect.new()
+	_dmg_overlay.color = Color(0.7, 0.0, 0.0, 0.0)
+	_dmg_overlay.anchor_right = 1.0
+	_dmg_overlay.anchor_bottom = 1.0
+	_dmg_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_dmg_overlay)
+	move_child(_dmg_overlay, 1)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_H:
@@ -26,6 +39,9 @@ func _process(delta: float) -> void:
 		_help_t -= delta
 	if controls:
 		controls.visible = _help_pinned or _help_t > 0.0
+
+	if _dmg_overlay:
+		_dmg_overlay.color.a = clampf(Game.hit_flash, 0.0, 1.0) * 0.45
 
 	var players := get_tree().get_nodes_in_group("player")
 	if players.size() > 0:

@@ -88,7 +88,7 @@ func _physics_process(delta: float) -> void:
 	elif Game.wave >= 1:
 		# Exercise the signature Seismic Slam's full cinematic path once.
 		if not _slam_tested and p != null and p.has_method("_apply_seismic_slam"):
-			p._apply_seismic_slam()
+			p._apply_seismic_slam(true)   # boosted (aerial ground-pound) path
 			_slam_tested = true
 		# Exercise the Breacher Charge sweep once (set a real direction first).
 		if not _charge_tested and p != null and p.has_method("_charge_sweep"):

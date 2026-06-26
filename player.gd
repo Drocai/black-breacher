@@ -44,6 +44,7 @@ extends CharacterBody3D
 @export var seismic_range: float = 5.0
 @export var seismic_damage: int = 6
 @export var seismic_cooldown: float = 4.5
+@export var air_slam_speed: float = 22.0   # dive speed for the aerial ground-pound
 # Signature BREACHER CHARGE (T) — an unstoppable shoulder-charge that plows
 # through a crowd, knocking enemies aside and shattering cover in his lane.
 @export var charge_speed: float = 13.0
@@ -96,6 +97,7 @@ var sneaking: bool = false
 var _held_enemy: Node3D = null
 var _halligan_cd: float = 0.0
 var _seismic_cd: float = 0.0
+var _air_slamming: bool = false
 var _charge_cd: float = 0.0
 var _charge_time_left: float = 0.0
 var _charge_dir: Vector3 = Vector3.ZERO
@@ -192,6 +194,17 @@ func _physics_process(delta: float) -> void:
 		_dodge_cd -= delta
 	if _invuln > 0.0:
 		_invuln -= delta
+
+	# Aerial ground-pound: committed dive straight down; a boosted slam on land.
+	if _air_slamming:
+		velocity.x = move_toward(velocity.x, 0.0, speed)
+		velocity.z = move_toward(velocity.z, 0.0, speed)
+		velocity.y = -air_slam_speed
+		move_and_slide()
+		if is_on_floor():
+			_air_slamming = false
+			_apply_seismic_slam(true)
+		return
 
 	# Dodge takes over movement for its duration
 	if _dodge_time_left > 0.0:
@@ -523,35 +536,46 @@ func _apply_halligan_hit() -> void:
 # damages, staggers, and hurls everything around him outward — wrapped
 # in slow-mo + a low-angle hero shot so his sheer mass lands.
 func _try_seismic_slam() -> void:
-	if _busy() or _seismic_cd > 0.0 or not is_on_floor():
+	if _busy():
+		return
+	# Airborne → start an aerial ground-pound dive instead of a ground slam.
+	if not is_on_floor():
+		if not _air_slamming and _seismic_cd <= 0.0:
+			_air_slamming = true
+			_seismic_cd = seismic_cooldown
+			_play_action("Charged_Upward_Slash", 1.2)
+		return
+	if _seismic_cd > 0.0:
 		return
 	_seismic_cd = seismic_cooldown
 	_play_action("Charged_Upward_Slash", 1.0)
 	get_tree().create_timer(0.32).timeout.connect(_apply_seismic_slam)
 
-func _apply_seismic_slam() -> void:
+func _apply_seismic_slam(boosted: bool = false) -> void:
+	var rng: float = seismic_range * (1.5 if boosted else 1.0)
+	var dmg: int = seismic_damage * (2 if boosted else 1)
 	for e in get_tree().get_nodes_in_group("enemy"):
 		if not (e is Node3D) or not e.has_method("take_hit"):
 			continue
 		var to: Vector3 = e.global_position - global_position
 		to.y = 0.0
-		if to.length() <= seismic_range:
-			e.take_hit(seismic_damage)
+		if to.length() <= rng:
+			e.take_hit(dmg)
 			if e.has_method("stagger"):
 				e.stagger(Vector3(to.x, 0.0, to.z).normalized())
 	for b in get_tree().get_nodes_in_group("breakable"):
-		if b is Node3D and b.has_method("take_hit") and global_position.distance_to(b.global_position) <= seismic_range:
+		if b is Node3D and b.has_method("take_hit") and global_position.distance_to(b.global_position) <= rng:
 			b.take_hit(5)
-	# Cinematic payload — the signature "he is ENORMOUS" beat.
+	# Cinematic payload — the signature "he is ENORMOUS" beat (bigger when aerial).
 	var ground: Vector3 = global_position + Vector3(0.0, 0.05, 0.0)
-	Game.spawn_shockwave(ground, Color(1.0, 0.55, 0.2), seismic_range * 1.4)
+	Game.spawn_shockwave(ground, Color(1.0, 0.55, 0.2), rng * 1.4)
 	Game.spawn_explosion(global_position)
 	Game.spawn_sound_3d(global_position, "res://breach_impact.wav", 3.0)
-	shake(0.5, 0.5)
-	_cam_fov_kick(9.0, 0.45)
+	shake(0.5 if not boosted else 0.7, 0.5)
+	_cam_fov_kick(9.0 if not boosted else 12.0, 0.45)
 	_cam_hero_angle(0.7)
 	_hero_cam(1.0)
-	Game.slowmo(0.3, 0.3)
+	Game.slowmo(0.3, 0.3 if not boosted else 0.4)
 
 # --- Signature: BREACHER CHARGE (T) ------------------------------
 func _try_charge() -> void:

@@ -300,6 +300,9 @@ func _apply_melee_hit() -> void:
 				shake(0.18, 0.25)
 				_hero_cam(0.8)
 				Game.spawn_hitspark(enemy.global_position + Vector3(0.0, 1.0, 0.0))
+				# Execution lands like a hammer — concussive thud + ground ring.
+				Game.spawn_sound_3d(enemy.global_position, "res://breach_impact.wav", -2.0)
+				Game.spawn_shockwave(enemy.global_position + Vector3(0.0, 0.05, 0.0), Color(1.0, 0.4, 0.3), 2.6)
 			else:
 				enemy.take_hit(_pending_hit_damage)
 			landed = true

@@ -22,7 +22,7 @@ var _t: float = 0.0
 var _missions_start: int = 0
 var _kills_start: int = 0
 const TIMEOUT := 180.0
-const ARENA_COUNT := 2   # keep in sync with Game.ARENA_SCENES.size()
+const ARENA_COUNT := 3   # keep in sync with Game.ARENA_SCENES.size()
 
 func _ready() -> void:
 	Game.full_reset()

@@ -15,7 +15,7 @@ const SAVE_PATH := "user://blackbreacher_save.cfg"
 
 # Campaign arenas in order. mission 1 → index 0, etc. Past the last one,
 # the campaign is complete (→ victory screen).
-const ARENA_SCENES: Array = ["res://main.tscn", "res://main2.tscn"]
+const ARENA_SCENES: Array = ["res://main.tscn", "res://main2.tscn", "res://main3.tscn"]
 const VICTORY_SCENE := "res://victory.tscn"
 
 # run state

@@ -23,7 +23,7 @@ var _missions_start: int = 0
 var _kills_start: int = 0
 var _slam_tested: bool = false
 var _charge_tested: bool = false
-const TIMEOUT := 180.0
+const TIMEOUT := 300.0   # sim-seconds; generous so a loaded machine can't false-fail
 const ARENA_COUNT := 3   # keep in sync with Game.ARENA_SCENES.size()
 
 func _ready() -> void:

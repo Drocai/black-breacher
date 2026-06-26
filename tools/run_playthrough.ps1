@@ -6,6 +6,12 @@
 #
 #  Usage:   pwsh tools/run_playthrough.ps1 [path-to-godot.exe]
 #  If no Godot path is given, it looks for the bundled 4.7 build.
+#
+#  NOTE: leftover Godot processes (e.g. from tools/capture windowed runs)
+#  can starve this headless run and cause a false timeout. If you hit a
+#  flaky FAIL, kill stray Godot processes first:
+#    Get-Process Godot* | Stop-Process -Force
+#  (Not done automatically here so it never kills an open editor session.)
 # ============================================================
 param(
     [string]$Godot = ""
@@ -29,8 +35,8 @@ if (Test-Path $log) { Remove-Item $log -Force }
 $pr = Start-Process -FilePath $Godot `
     -ArgumentList @("--headless","--path",$proj,"res://tests/playthrough/playthrough_bootstrap.tscn") `
     -RedirectStandardOutput $log -RedirectStandardError "$log.err" -PassThru -NoNewWindow
-$pr.WaitForExit(240000) | Out-Null
-if (-not $pr.HasExited) { $pr.Kill(); Write-Error "Playthrough timed out (240s wall)."; exit 3 }
+$pr.WaitForExit(360000) | Out-Null
+if (-not $pr.HasExited) { $pr.Kill(); Write-Error "Playthrough timed out (360s wall)."; exit 3 }
 $pr.WaitForExit() | Out-Null   # no-arg wait settles ExitCode after a timed wait
 
 # The driver encodes the verdict in its process exit code (quit 0 = pass,

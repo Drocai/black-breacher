@@ -22,6 +22,7 @@ var _t: float = 0.0
 var _missions_start: int = 0
 var _kills_start: int = 0
 var _slam_tested: bool = false
+var _charge_tested: bool = false
 const TIMEOUT := 180.0
 const ARENA_COUNT := 3   # keep in sync with Game.ARENA_SCENES.size()
 
@@ -88,6 +89,12 @@ func _physics_process(delta: float) -> void:
 		if not _slam_tested and p != null and p.has_method("_apply_seismic_slam"):
 			p._apply_seismic_slam()
 			_slam_tested = true
+		# Exercise the Breacher Charge sweep once (set a real direction first).
+		if not _charge_tested and p != null and p.has_method("_charge_sweep"):
+			if "_charge_dir" in p:
+				p._charge_dir = Vector3(0.0, 0.0, -1.0)
+			p._charge_sweep()
+			_charge_tested = true
 		# Waves in progress (or in a resupply intermission) — mow them down,
 		# sparing the boss for its own stage.
 		_kill_enemies(true)

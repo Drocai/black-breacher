@@ -44,6 +44,12 @@ extends CharacterBody3D
 @export var seismic_range: float = 5.0
 @export var seismic_damage: int = 6
 @export var seismic_cooldown: float = 4.5
+# Signature BREACHER CHARGE (T) — an unstoppable shoulder-charge that plows
+# through a crowd, knocking enemies aside and shattering cover in his lane.
+@export var charge_speed: float = 13.0
+@export var charge_time: float = 0.4
+@export var charge_damage: int = 5
+@export var charge_cooldown: float = 3.5
 @export_group("Halligan grip (tune in editor)")
 @export var halligan_offset: Vector3 = Vector3(0.05, 0.02, 0.0)
 @export var halligan_rotation_deg: Vector3 = Vector3(0.0, 90.0, 0.0)
@@ -90,6 +96,10 @@ var sneaking: bool = false
 var _held_enemy: Node3D = null
 var _halligan_cd: float = 0.0
 var _seismic_cd: float = 0.0
+var _charge_cd: float = 0.0
+var _charge_time_left: float = 0.0
+var _charge_dir: Vector3 = Vector3.ZERO
+var _charge_hits: Array = []
 var armor: int = 0
 var grenades: int = 2
 
@@ -140,6 +150,8 @@ func _input(event: InputEvent) -> void:
 				_try_halligan()
 			KEY_Z:
 				_try_seismic_slam()
+			KEY_T:
+				_try_charge()
 			KEY_R:
 				Game.full_reset()
 				get_tree().reload_current_scene()
@@ -172,6 +184,8 @@ func _physics_process(delta: float) -> void:
 		_halligan_cd -= delta
 	if _seismic_cd > 0.0:
 		_seismic_cd -= delta
+	if _charge_cd > 0.0:
+		_charge_cd -= delta
 	if _dodge_cd > 0.0:
 		_dodge_cd -= delta
 	if _invuln > 0.0:
@@ -182,6 +196,18 @@ func _physics_process(delta: float) -> void:
 		_dodge_time_left -= delta
 		velocity.x = _dodge_dir.x * dodge_speed
 		velocity.z = _dodge_dir.z * dodge_speed
+		move_and_slide()
+		return
+
+	# Breacher Charge takes over movement: an unstoppable shoulder-charge that
+	# shrugs off hits (brief i-frames) and mows down whatever it touches.
+	if _charge_time_left > 0.0:
+		_charge_time_left -= delta
+		_invuln = maxf(_invuln, 0.08)
+		velocity.x = _charge_dir.x * charge_speed
+		velocity.z = _charge_dir.z * charge_speed
+		mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(_charge_dir.x, _charge_dir.z), 12.0 * delta)
+		_charge_sweep()
 		move_and_slide()
 		return
 
@@ -512,6 +538,45 @@ func _apply_seismic_slam() -> void:
 	_cam_hero_angle(0.7)
 	_hero_cam(1.0)
 	Game.slowmo(0.3, 0.3)
+
+# --- Signature: BREACHER CHARGE (T) ------------------------------
+func _try_charge() -> void:
+	if _busy() or _charge_cd > 0.0 or not is_on_floor():
+		return
+	_charge_cd = charge_cooldown
+	_charge_time_left = charge_time
+	var dir := _current_input_dir()
+	if dir == Vector3.ZERO:
+		dir = Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	_charge_dir = dir.normalized()
+	_charge_hits.clear()
+	_play_action("Spartan_Kick", 1.2)
+	shake(0.15, 0.3)
+	_cam_fov_kick(5.0, 0.3)
+	Game.spawn_sound_3d(global_position, "res://heavy_step.wav", 1.0, 0.8)
+
+func _charge_sweep() -> void:
+	var hit_any := false
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if not (e is Node3D) or not e.has_method("take_hit"):
+			continue
+		var id := e.get_instance_id()
+		if _charge_hits.has(id):
+			continue
+		var to: Vector3 = e.global_position - global_position
+		to.y = 0.0
+		if to.length() <= 1.7 and _charge_dir.dot(to.normalized()) > -0.2:
+			e.take_hit(charge_damage)
+			if e.has_method("stagger"):
+				e.stagger(_charge_dir + Vector3(to.x, 0.0, to.z).normalized() * 0.4)
+			_charge_hits.append(id)
+			Game.spawn_hitspark(e.global_position + Vector3(0.0, 1.2, 0.0))
+			hit_any = true
+	for b in get_tree().get_nodes_in_group("breakable"):
+		if b is Node3D and b.has_method("take_hit") and global_position.distance_to(b.global_position) <= 1.6:
+			b.take_hit(3)
+	if hit_any:
+		_hitstop(0.04)
 
 # --- Damage / respawn ---
 func heal(amount: int) -> void:

@@ -11,11 +11,13 @@ extends Camera3D
 @export var follow_lerp: float = 9.0
 @export var look_ahead: float = 1.4
 @export var pitch_degrees: float = -28.0
+@export var punch_amount: float = 0.32   # how far the hero punch-in pulls the camera in
 
 var _player: Node3D
 var _shake_t: float = 0.0
 var _shake_dur: float = 0.0
 var _shake_amp: float = 0.0
+var _punch: float = 0.0   # 1 -> 0, decays after a finisher/takedown
 
 func _ready() -> void:
 	add_to_group("camera")
@@ -34,9 +36,11 @@ func _physics_process(delta: float) -> void:
 		var flat := Vector3(p.velocity.x, 0.0, p.velocity.z)
 		lead = flat.limit_length(8.0) / 8.0 * look_ahead
 
-	var target: Vector3 = p.global_position + offset + lead
+	var off: Vector3 = offset * (1.0 - punch_amount * _punch)
+	var target: Vector3 = p.global_position + off + lead
 	var t: float = 1.0 - exp(-follow_lerp * delta)
 	global_position = global_position.lerp(target, t)
+	_punch = move_toward(_punch, 0.0, delta / 0.45)
 
 	if _shake_t > 0.0:
 		_shake_t -= delta
@@ -47,6 +51,11 @@ func shake(amplitude: float = 0.12, duration: float = 0.3) -> void:
 	_shake_amp = amplitude
 	_shake_dur = duration
 	_shake_t = duration
+
+# Cinematic punch-in for finishers / takedowns / throws.
+func punch_in(strength: float = 1.0) -> void:
+	_punch = clampf(strength, 0.0, 1.0)
+	shake(0.18, 0.35)
 
 func _get_player() -> Node3D:
 	if is_instance_valid(_player):

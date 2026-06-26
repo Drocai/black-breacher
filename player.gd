@@ -275,6 +275,7 @@ func _apply_melee_hit() -> void:
 			if enemy.has_method("is_staggered") and enemy.is_staggered() and ("health" in enemy) and enemy.health <= 4:
 				enemy.take_hit(999)
 				shake(0.18, 0.25)
+				_hero_cam(0.8)
 				Game.spawn_hitspark(enemy.global_position + Vector3(0.0, 1.0, 0.0))
 			else:
 				enemy.take_hit(_pending_hit_damage)
@@ -366,6 +367,11 @@ func shake(amplitude: float = 0.12, duration: float = 0.3) -> void:
 	if cam and cam.has_method("shake"):
 		cam.shake(amplitude, duration)
 
+func _hero_cam(strength: float = 1.0) -> void:
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("punch_in"):
+		cam.punch_in(strength)
+
 # --- Damage / respawn ---
 func heal(amount: int) -> void:
 	health = min(health + amount, max_health)
@@ -400,6 +406,7 @@ func _do_takedown(e: Node3D) -> void:
 		jab_sound.play()
 	if e.has_method("take_hit"):
 		e.take_hit(999)
+	_hero_cam(1.0)
 	Game.log_event("stealth takedown")
 
 # --- Grab & throw (breaching bodies) ---
@@ -431,6 +438,7 @@ func _do_throw() -> void:
 	_held_enemy = null
 	_play_action("Charged_Upward_Slash")
 	shake(0.2, 0.3)
+	_hero_cam(0.7)
 	_hitstop(0.08)
 
 func _find_grab_target() -> Node3D:

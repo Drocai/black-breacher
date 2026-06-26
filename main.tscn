@@ -258,7 +258,8 @@ material = SubResource("Mat_wall")
 
 [node name="AlcoveLight" type="OmniLight3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -21)
-light_energy = 2.0
+light_color = Color(1, 0.45, 0.3, 1)
+light_energy = 2.2
 omni_range = 12.0
 
 [node name="Objective" type="CSGBox3D" parent="Room"]

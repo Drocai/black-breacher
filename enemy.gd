@@ -138,12 +138,30 @@ func _update_unaware(delta: float) -> void:
 	if "sneaking" in p and p.sneaking:
 		see *= 0.4
 	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
-	if dist < see and fwd.dot(to.normalized()) > view_dot:
+	if dist < see and fwd.dot(to.normalized()) > view_dot and _has_los(p):
 		_awareness += delta / detect_time
-		if _awareness >= 1.0:
+		if _awareness >= 1.0 and not alerted:
 			alerted = true
+			_raise_alarm()
 	else:
 		_awareness = maxf(0.0, _awareness - delta * 0.6)
+
+func _has_los(p: Node3D) -> bool:
+	var space := get_world_3d().direct_space_state
+	var from := global_position + Vector3(0.0, 1.4, 0.0)
+	var to := p.global_position + Vector3(0.0, 1.0, 0.0)
+	var q := PhysicsRayQueryParameters3D.create(from, to)
+	q.exclude = [self]
+	var hit := space.intersect_ray(q)
+	return hit.is_empty() or hit.get("collider") == p
+
+func _raise_alarm() -> void:
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e == self or not ("alerted" in e):
+			continue
+		if not e.alerted and global_position.distance_to(e.global_position) < 9.0:
+			e.alerted = true
+	Game.log_event("alarm raised")
 
 func _attack(player: Node) -> void:
 	_atk_cd = attack_cooldown

@@ -283,6 +283,12 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
 - **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
 
+**Cinematic + stealth depth (June 2026):**
+- **Hero-cam:** `camera_rig.punch_in(strength)` pulls the camera in + shakes on takedowns (1.0), finishers (0.8), grab-throws (0.7); decays over ~0.45s (`player._hero_cam`).
+- **Line-of-sight:** unaware guards raycast to the player (`enemy._has_los`) — no seeing through walls/crates.
+- **Alarm-spread:** a guard going alert wakes nearby guards <9m (`enemy._raise_alarm`); takedowns stay silent (don't alarm).
+- Boss room has a menacing warm light now.
+
 **Breach dynamics (June 2026):**
 - **Breakable crates** (`crate.tscn`/`crate.gd`, group "breakable", wood-noise) — strike them to burst open and drop a pickup. `player._apply_melee_hit` now also damages the "breakable" group.
 - **Finisher:** hitting an enemy that `is_staggered()` AND `health <= 4` executes it (`take_hit(999)` + extra shake/spark) — rewards setting up with special/grab-throw/shove.

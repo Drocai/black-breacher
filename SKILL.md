@@ -283,6 +283,8 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
 - **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
 
+**Audio atmosphere (June 2026):** looping dark **ambient drone** (`ambient.wav` synth, `music.gd` sets `AudioStreamWAV.LOOP_FORWARD` + plays; `Music` node in main.tscn, -12dB) for "the Black" mood; **detection alert sting** (`alert.wav`, played once by `Game.raise_detection()` which guards now call instead of setting `detected` directly). All audio synth-generated via PowerShell, LFS-tracked.
+
 **Stealth-vs-loud + variety (June 2026):**
 - **Ghost bonus:** `Game.detected` flips true when any guard spots the player; breaching the **entry door** (`door.is_entry=true`, front door) calls `Game.evaluate_stealth()` → **+1000 silent-entry bonus** if undetected. HUD shows `UNDETECTED`/`DETECTED` pre-entry. Reset per mission.
 - **Enemy color tints:** `enemy.tint` (applied to the duplicated `_mat` in `_ready`) — wave manager tints heavy=steel-blue, fast=bright-yellow for at-a-glance type reads.

@@ -64,3 +64,7 @@ func _process(delta: float) -> void:
 		status.text += "   GRENADES %d" % players[0].grenades
 	if Game.combo > 1:
 		status.text += "   x%d COMBO" % Game.combo_mult()
+
+	# Transient upgrade/event toast takes over the status line briefly.
+	if Game.toast_active():
+		status.text = ">>> %s <<<" % Game.toast_text

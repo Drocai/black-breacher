@@ -31,6 +31,10 @@ var detected: bool = false   # set true once any guard spots the player this mis
 var combo: int = 0
 var _combo_timer: float = 0.0
 
+# Transient on-screen toast (the HUD reads this) — e.g. upgrade pickups.
+var toast_text: String = ""
+var _toast_t: float = 0.0
+
 # persistent
 var best_score: int = 0
 var missions_cleared: int = 0
@@ -104,6 +108,16 @@ func _process(delta: float) -> void:
 		_combo_timer -= delta
 		if _combo_timer <= 0.0:
 			combo = 0
+	if _toast_t > 0.0:
+		_toast_t -= delta
+
+# Flash a short message on the HUD (e.g. "UPGRADE: VITALITY").
+func show_toast(msg: String, dur: float = 2.5) -> void:
+	toast_text = msg
+	_toast_t = dur
+
+func toast_active() -> bool:
+	return _toast_t > 0.0
 
 func combo_mult() -> int:
 	return clampi(combo, 1, 5)

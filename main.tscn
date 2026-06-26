@@ -368,4 +368,18 @@ theme_override_font_sizes/font_size = 30
 text = "Press F to Breach"
 horizontal_alignment = 1
 
+[node name="Controls" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 78.0
+offset_right = 420.0
+offset_bottom = 320.0
+theme_override_font_sizes/font_size = 18
+text = "BLACK BREACHER
+WASD / Arrows  Move      Shift  Run      C  Sneak
+J / Left-Click  Strike (combo)
+Right-Click  Kick       X  Halligan sweep
+E  Special       Q  Dodge
+Ctrl  Block / Parry     V  Grab / Throw
+F  Breach door     R  Restart     H  Toggle help"
+
 [editable path="Player/breacher"]

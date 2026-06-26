@@ -1,6 +1,12 @@
 # Black Breacher
 
-A 3D action game built in **Godot 4.7-stable** (Forward+ renderer, Jolt physics).
+A 3D stealth-action brawler built in **Godot 4.7-stable** (Forward+ renderer, Jolt physics).
+
+You play **the Black Breacher** — a large, brutal ex-military operator. **Black** = move
+in the shadows: sneak past patrolling guards, break their line of sight, and take them
+down silently for a *ghost bonus*. **Breacher** = come up hard: kick doors open, throw
+bodies, smash crates, and fight through escalating waves of enemies into the boss room.
+Clear the objective to advance to the next, harder mission. Score and best run persist.
 
 ---
 
@@ -11,6 +17,32 @@ A 3D action game built in **Godot 4.7-stable** (Forward+ renderer, Jolt physics)
 3. Select the `project.godot` file in the root of this repo and open it.
 
 > Requires Godot **4.7-stable**. Opening in an older 4.x build may upgrade/alter project files.
+
+Then press **F5** to play. (Press **H** in-game any time to toggle the controls overlay.)
+
+---
+
+## How to play
+
+| Input | Action |
+|---|---|
+| **WASD / Arrows** | Move |
+| **Shift** | Run |
+| **C** | Sneak (slow, silent, harder to spot) |
+| **Space** | Jump |
+| **J / Left-click** | Strike — 4-hit combo (and **silent takedown** vs an unaware enemy) |
+| **Right-click** | Heavy kick |
+| **X** | Halligan sweep (long reach, wide arc) |
+| **E** | Special launcher (knockback) |
+| **Q** | Dodge (brief i-frames) |
+| **Ctrl** (hold) | Block — tap as you're hit to **parry** |
+| **V** | Grab, then **V** again to throw |
+| **F** | Breach a door in range |
+| **R** | Restart · **H** Toggle controls |
+
+**The loop:** sneak the approach undetected (ghost bonus) → breach the door → survive
+escalating waves of color-coded enemy types (they *telegraph* attacks — block/parry/dodge)
+→ breach into the boss room → drop the boss → reach the objective → next mission.
 
 ---
 

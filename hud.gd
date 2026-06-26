@@ -10,8 +10,22 @@ extends CanvasLayer
 @onready var health_bar: ProgressBar = $Health
 @onready var prompt: Label = $BreachPrompt
 @onready var status: Label = $Status
+@onready var controls: Label = get_node_or_null("Controls")
 
-func _process(_delta: float) -> void:
+var _help_t: float = 7.0   # auto-show the controls for a few seconds at start
+var _help_pinned: bool = false
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_H:
+		_help_pinned = not _help_pinned
+		_help_t = 0.0
+
+func _process(delta: float) -> void:
+	if _help_t > 0.0:
+		_help_t -= delta
+	if controls:
+		controls.visible = _help_pinned or _help_t > 0.0
+
 	var players := get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
 		var p: Node = players[0]

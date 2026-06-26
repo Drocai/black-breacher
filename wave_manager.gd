@@ -20,6 +20,10 @@ const UP_KINDS: Array = ["VITALITY", "PLATING", "ORDNANCE", "ADRENALINE"]
 
 @export var max_waves: int = 3
 @export var intermission_time: float = 4.0   # resupply window between waves
+# Per-arena flavor. "" = the standard balanced roster. "bruiser" skews toward
+# brutes/heavies (close-quarters maul). "ranged" skews toward ranged/snipers/
+# turrets (open sightlines). Set on the WaveManager node in each arena scene.
+@export var enemy_bias: String = ""
 
 var _wave: int = 0
 var _started: bool = false
@@ -102,9 +106,23 @@ func _next_wave() -> void:
 			kind = "heavy"
 		elif i % 2 == 1:
 			kind = "fast"
+		kind = _apply_bias(kind, i)
 		_spawn_enemy(kind, pt)
 	await get_tree().create_timer(0.3).timeout
 	_spawning = false
+
+## Re-flavor a portion of each wave toward the arena's threat archetype, while
+## leaving the rest of the roster intact so fights stay varied.
+func _apply_bias(kind: String, i: int) -> String:
+	if enemy_bias == "bruiser" and i % 2 == 0:
+		return "brute" if (_wave >= 2 and i % 4 == 0) else "heavy"
+	if enemy_bias == "ranged" and i % 2 == 0:
+		if _wave >= 3 and i % 6 == 0:
+			return "sniper"
+		if _wave >= 3 and i % 5 == 0:
+			return "turret"
+		return "ranged"
+	return kind
 
 func _spawn_enemy(kind: String, pos: Vector3) -> void:
 	var hp_scale := 1.0 + 0.3 * float(Game.mission - 1)

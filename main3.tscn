@@ -296,6 +296,7 @@ script = ExtResource("25_nav")
 [node name="WaveManager" type="Node3D" parent="."]
 script = ExtResource("10_wave")
 max_waves = 5
+enemy_bias = "ranged"
 
 [node name="SpawnA" type="Marker3D" parent="WaveManager"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 0, -11)

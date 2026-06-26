@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" path="res://grenade_pickup.tscn" id="22_gp"]
 [ext_resource type="PackedScene" path="res://boss.tscn" id="23_boss"]
 [ext_resource type="PackedScene" path="res://boss_healthbar.tscn" id="24_bosshp"]
+[ext_resource type="Script" path="res://nav_baker.gd" id="25_nav"]
 
 [sub_resource type="ShaderMaterial" id="Mat_vignette"]
 shader = ExtResource("16_vig")
@@ -340,6 +341,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -17)
 transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, -22)
 
 [node name="BossHealthBar" parent="." instance=ExtResource("24_bosshp")]
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+script = ExtResource("25_nav")
 
 [node name="WaveManager" type="Node3D" parent="."]
 script = ExtResource("10_wave")

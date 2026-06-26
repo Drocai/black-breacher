@@ -4,6 +4,8 @@
 
 # Export output and presets (export_presets.cfg can contain signing secrets).
 export_presets.cfg
+# Web/desktop export build artifacts (large; deploy output, not source).
+build/
 
 # Compiled translation binaries.
 *.translation

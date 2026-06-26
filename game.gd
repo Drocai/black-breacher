@@ -38,6 +38,7 @@ var _toast_t: float = 0.0
 # persistent
 var best_score: int = 0
 var missions_cleared: int = 0
+var top_scores: Array = []   # descending top-5 run scores (leaderboard)
 
 var _alert: AudioStreamPlayer
 
@@ -235,10 +236,21 @@ func spawn_sound_3d(pos: Vector3, stream_path: String, vol_db: float = 0.0, pitc
 func log_event(msg: String) -> void:
 	print("[BB] ", msg)
 
+# Record a finished-run score onto the persistent top-5 leaderboard.
+func record_score(s: int) -> int:
+	top_scores.append(s)
+	top_scores.sort()
+	top_scores.reverse()
+	if top_scores.size() > 5:
+		top_scores.resize(5)
+	save()
+	return top_scores.find(s)   # placement index (0 = new #1), -1 if bumped
+
 func save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("progress", "best_score", best_score)
 	cfg.set_value("progress", "missions_cleared", missions_cleared)
+	cfg.set_value("progress", "top_scores", top_scores)
 	cfg.save(SAVE_PATH)
 
 func _load() -> void:
@@ -246,3 +258,4 @@ func _load() -> void:
 	if cfg.load(SAVE_PATH) == OK:
 		best_score = int(cfg.get_value("progress", "best_score", 0))
 		missions_cleared = int(cfg.get_value("progress", "missions_cleared", 0))
+		top_scores = cfg.get_value("progress", "top_scores", [])

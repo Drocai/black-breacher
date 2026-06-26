@@ -15,6 +15,7 @@ const SAVE_PATH := "user://blackbreacher_save.cfg"
 var kills: int = 0
 var score: int = 0
 var mission: int = 1
+var difficulty: int = 1   # 0 easy, 1 normal, 2 hard
 var wave: int = 0
 var max_waves: int = 3
 var wave_enemies_left: int = 0
@@ -70,6 +71,22 @@ func full_reset() -> void:
 	kills = 0
 	score = 0
 	reset()
+
+# --- Difficulty scaling (set from the title screen) ---
+func _diff() -> int:
+	return clampi(difficulty, 0, 2)
+
+func hp_mult() -> float:
+	return [0.7, 1.0, 1.4][_diff()]
+
+func dmg_mult() -> float:
+	return [0.6, 1.0, 1.5][_diff()]
+
+func count_bonus() -> int:
+	return [-1, 0, 1][_diff()]
+
+func player_hp() -> int:
+	return [150, 100, 80][_diff()]
 
 func add_kill(points: int = 100) -> void:
 	kills += 1

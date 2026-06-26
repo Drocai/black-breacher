@@ -52,7 +52,7 @@ func _next_wave() -> void:
 	_wave += 1
 	Game.wave = _wave
 	_spawning = true
-	var count := 2 + _wave + (Game.mission - 1)
+	var count := maxi(1, 2 + _wave + (Game.mission - 1) + Game.count_bonus())
 	for i in count:
 		var pt: Vector3 = _points[i % _points.size()]
 		var kind := "melee"
@@ -89,6 +89,10 @@ func _spawn_enemy(kind: String, pos: Vector3) -> void:
 		_:
 			e.max_health = int(round(4 * hp_scale))
 			e.scale = Vector3.ONE * 0.9
+	# Difficulty scaling
+	e.max_health = maxi(1, int(round(float(e.max_health) * Game.hp_mult())))
+	if "attack_damage" in e:
+		e.attack_damage = int(round(float(e.attack_damage) * Game.dmg_mult()))
 	get_tree().current_scene.add_child(e)
 	e.global_position = pos + Vector3(0.0, 0.1, 0.0)
 	_alive.append(e)

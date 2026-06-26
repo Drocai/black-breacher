@@ -88,6 +88,7 @@ var _halligan_cd: float = 0.0
 func _ready() -> void:
 	Engine.time_scale = 1.0   # normalize in case a reload happened mid-hitstop
 	add_to_group("player")
+	max_health = Game.player_hp()
 	health = max_health
 	_spawn = global_transform
 	_apply_character_skin()

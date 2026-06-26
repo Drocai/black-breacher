@@ -10,6 +10,8 @@ extends Node3D
 
 const MELEE := preload("res://enemy.tscn")
 const RANGED := preload("res://enemy_ranged.tscn")
+const BOMBER := preload("res://bomber.tscn")
+const TURRET := preload("res://turret.tscn")
 
 @export var max_waves: int = 3
 
@@ -56,7 +58,11 @@ func _next_wave() -> void:
 	for i in count:
 		var pt: Vector3 = _points[i % _points.size()]
 		var kind := "melee"
-		if _wave >= 2 and i % 3 == 0:
+		if _wave >= 3 and i % 5 == 0:
+			kind = "turret"
+		elif _wave >= 2 and i % 4 == 0:
+			kind = "bomber"
+		elif _wave >= 2 and i % 3 == 0:
 			kind = "ranged"
 		elif i % 4 == 0:
 			kind = "heavy"
@@ -68,12 +74,18 @@ func _next_wave() -> void:
 
 func _spawn_enemy(kind: String, pos: Vector3) -> void:
 	var hp_scale := 1.0 + 0.3 * float(Game.mission - 1)
-	var e: Node3D = (RANGED.instantiate() if kind == "ranged" else MELEE.instantiate())
+	var e: Node3D
 	match kind:
 		"ranged":
+			e = RANGED.instantiate()
 			e.max_health = int(round(3 * hp_scale))
 			e.scale = Vector3.ONE * 0.9
+		"bomber":
+			e = BOMBER.instantiate()
+		"turret":
+			e = TURRET.instantiate()
 		"heavy":
+			e = MELEE.instantiate()
 			e.max_health = int(round(8 * hp_scale))
 			e.move_speed = 1.3
 			e.attack_damage = 14
@@ -81,12 +93,14 @@ func _spawn_enemy(kind: String, pos: Vector3) -> void:
 			e.scale = Vector3.ONE * 1.3
 			e.tint = Color(0.55, 0.6, 0.8)
 		"fast":
+			e = MELEE.instantiate()
 			e.max_health = 2
 			e.move_speed = 4.5
 			e.attack_damage = 5
 			e.scale = Vector3.ONE * 0.85
 			e.tint = Color(1.4, 1.1, 0.5)
 		_:
+			e = MELEE.instantiate()
 			e.max_health = int(round(4 * hp_scale))
 			e.scale = Vector3.ONE * 0.9
 	# Difficulty scaling

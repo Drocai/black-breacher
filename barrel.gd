@@ -46,4 +46,5 @@ func _explode() -> void:
 			dir.y = 0.0
 			enemy.stagger(dir.normalized())
 	Game.spawn_hitspark(global_position + Vector3(0.0, 0.6, 0.0))
+	Game.spawn_explosion(global_position + Vector3(0.0, 0.6, 0.0))
 	queue_free()

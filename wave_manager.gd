@@ -12,6 +12,7 @@ const MELEE := preload("res://enemy.tscn")
 const RANGED := preload("res://enemy_ranged.tscn")
 const BOMBER := preload("res://bomber.tscn")
 const TURRET := preload("res://turret.tscn")
+const BRUTE := preload("res://brute.tscn")
 
 @export var max_waves: int = 3
 
@@ -64,6 +65,8 @@ func _next_wave() -> void:
 			kind = "bomber"
 		elif _wave >= 2 and i % 3 == 0:
 			kind = "ranged"
+		elif _wave >= 2 and i % 5 == 2:
+			kind = "brute"
 		elif i % 4 == 0:
 			kind = "heavy"
 		elif i % 2 == 1:
@@ -84,6 +87,8 @@ func _spawn_enemy(kind: String, pos: Vector3) -> void:
 			e = BOMBER.instantiate()
 		"turret":
 			e = TURRET.instantiate()
+		"brute":
+			e = BRUTE.instantiate()
 		"heavy":
 			e = MELEE.instantiate()
 			e.max_health = int(round(8 * hp_scale))

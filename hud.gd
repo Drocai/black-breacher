@@ -58,3 +58,5 @@ func _process(delta: float) -> void:
 
 	if players.size() > 0 and ("sneaking" in players[0]) and players[0].sneaking:
 		status.text = "[ SNEAKING ]   " + status.text
+	if players.size() > 0 and ("armor" in players[0]) and players[0].armor > 0:
+		status.text += "   ARMOR %d" % players[0].armor

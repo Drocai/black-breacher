@@ -118,6 +118,7 @@ func _explode() -> void:
 				e.stagger(Vector3(d.x, 0.0, d.z).normalized())
 
 	Game.spawn_hitspark(global_position + Vector3(0.0, 0.6, 0.0))
+	Game.spawn_explosion(global_position + Vector3(0.0, 0.6, 0.0))
 	queue_free()
 
 func take_hit(damage: int) -> void:

@@ -84,6 +84,7 @@ var _step_timer: float = 0.0
 var sneaking: bool = false
 var _held_enemy: Node3D = null
 var _halligan_cd: float = 0.0
+var armor: int = 0
 
 func _ready() -> void:
 	Engine.time_scale = 1.0   # normalize in case a reload happened mid-hitstop
@@ -440,6 +441,9 @@ func _apply_halligan_hit() -> void:
 func heal(amount: int) -> void:
 	health = min(health + amount, max_health)
 
+func add_armor(amount: int) -> void:
+	armor = mini(armor + amount, 100)
+
 func _face_nearest_enemy() -> void:
 	var nearest: Node3D = null
 	var best := 4.0
@@ -545,6 +549,10 @@ func take_damage(amount: int) -> void:
 		Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0))
 		if jab_sound:
 			jab_sound.play()
+	if armor > 0:
+		var soak: int = mini(armor, amount)
+		armor -= soak
+		amount -= soak
 	health -= amount
 	shake(0.08, 0.2)
 	if health <= 0:
@@ -566,6 +574,7 @@ func _respawn() -> void:
 	global_transform = _spawn
 	velocity = Vector3.ZERO
 	health = max_health
+	armor = 0
 
 func _play_action(anim_name: String, speed: float = 1.4) -> void:
 	if not anim.has_animation(anim_name):

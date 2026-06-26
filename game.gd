@@ -9,6 +9,7 @@ extends Node
 
 const DMG_NUM := preload("res://damage_number.tscn")
 const SPARK := preload("res://hitspark.tscn")
+const EXPLOSION := preload("res://explosion.tscn")
 const SAVE_PATH := "user://blackbreacher_save.cfg"
 
 # run state
@@ -118,6 +119,14 @@ func spawn_hitspark(pos: Vector3) -> void:
 	var s := SPARK.instantiate()
 	scene.add_child(s)
 	s.global_position = pos
+
+func spawn_explosion(pos: Vector3) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var fx := EXPLOSION.instantiate()
+	scene.add_child(fx)
+	fx.global_position = pos
 
 func log_event(msg: String) -> void:
 	print("[BB] ", msg)

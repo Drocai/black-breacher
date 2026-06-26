@@ -15,14 +15,19 @@ const TURRET := preload("res://turret.tscn")
 const BRUTE := preload("res://brute.tscn")
 const MEDIC := preload("res://medic.tscn")
 const SNIPER := preload("res://sniper.tscn")
+const UPGRADE := preload("res://upgrade_pickup.tscn")
+const UP_KINDS: Array = ["VITALITY", "PLATING", "ORDNANCE", "ADRENALINE"]
 
 @export var max_waves: int = 3
+@export var intermission_time: float = 4.0   # resupply window between waves
 
 var _wave: int = 0
 var _started: bool = false
 var _spawning: bool = false
+var _intermission: bool = false
 var _alive: Array = []
 var _points: Array = []
+var _center: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	Game.reset()
@@ -32,6 +37,10 @@ func _ready() -> void:
 			_points.append(c.global_position)
 	if _points.is_empty():
 		_points.append(global_position)
+	# Arena centroid — where the resupply upgrade drops between waves.
+	for pt in _points:
+		_center += pt
+	_center /= float(_points.size())
 
 func _process(_delta: float) -> void:
 	_alive = _alive.filter(func(e): return is_instance_valid(e))
@@ -44,14 +53,30 @@ func _process(_delta: float) -> void:
 			_next_wave()
 		return
 
-	if _spawning:
+	if _spawning or _intermission:
 		return
 
 	if _alive.is_empty():
 		if _wave < max_waves:
-			_next_wave()
+			_run_intermission()
 		elif not Game.all_waves_done:
 			Game.all_waves_done = true
+
+# A short resupply window between waves: drop one upgrade for the player to
+# grab, then start the next wave.
+func _run_intermission() -> void:
+	_intermission = true
+	_spawn_upgrade()
+	await get_tree().create_timer(intermission_time).timeout
+	_intermission = false
+	_next_wave()
+
+func _spawn_upgrade() -> void:
+	var u := UPGRADE.instantiate()
+	u.kind = UP_KINDS[_wave % UP_KINDS.size()]
+	get_tree().current_scene.add_child(u)
+	u.global_position = _center + Vector3(0.0, 0.8, 0.0)
+	Game.log_event("resupply drop: " + str(u.kind))
 
 func _next_wave() -> void:
 	_wave += 1

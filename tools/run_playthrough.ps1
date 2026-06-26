@@ -29,10 +29,23 @@ if (Test-Path $log) { Remove-Item $log -Force }
 $pr = Start-Process -FilePath $Godot `
     -ArgumentList @("--headless","--path",$proj,"res://tests/playthrough/playthrough_bootstrap.tscn") `
     -RedirectStandardOutput $log -RedirectStandardError "$log.err" -PassThru -NoNewWindow
-$pr.WaitForExit(120000) | Out-Null
-if (-not $pr.HasExited) { $pr.Kill(); Write-Error "Playthrough timed out (120s wall)."; exit 3 }
+$pr.WaitForExit(240000) | Out-Null
+if (-not $pr.HasExited) { $pr.Kill(); Write-Error "Playthrough timed out (240s wall)."; exit 3 }
+$pr.WaitForExit() | Out-Null   # no-arg wait settles ExitCode after a timed wait
 
+# The driver encodes the verdict in its process exit code (quit 0 = pass,
+# quit 1 = fail). That is authoritative — the final stdout line can be lost
+# to pipe buffering on a fast exit, so do NOT grade by grepping stdout.
 $out = Get-Content $log -Raw
-$out -split "`n" | Where-Object { $_ -match 'phase|PLAYTHROUGH' } | ForEach-Object { Write-Output $_.Trim() }
+$out -split "`n" | Where-Object { $_ -match 'PLAYTHROUGH|mission .* cleared|resupply|upgrade applied|NAV_POLYS' } | ForEach-Object { Write-Output $_.Trim() }
 
-if ($out -match 'PLAYTHROUGH_OK') { exit 0 } else { exit 1 }
+# Verdict: prefer the driver's process exit code (quit 0 = pass, 1 = fail).
+# If it didn't settle, fall back to the stdout marker (which can be lost to
+# pipe buffering on a fast exit — hence the exit code is primary).
+$code = $pr.ExitCode
+if ($null -eq $code) {
+    if ($out -match 'PLAYTHROUGH_OK') { $code = 0 } else { $code = 1 }
+}
+$verdict = if ($code -eq 0) { "PASS" } else { "FAIL" }
+Write-Output "--- playthrough verdict: $verdict (exit $code) ---"
+exit $code

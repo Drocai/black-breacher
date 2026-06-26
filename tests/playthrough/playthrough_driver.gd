@@ -2,46 +2,43 @@ extends Node
 
 # ============================================================
 #  BLACK BREACHER — automated headless playthrough (regression test)
-#  Pilots the real main.tscn through the entire mission loop and
-#  asserts every link of the win chain. Prints PLAYTHROUGH_OK + stats
-#  on success, or PLAYTHROUGH_FAIL + a state dump on any broken link.
-#  Run via tools/run_playthrough.ps1 (or load playthrough_bootstrap.tscn
-#  headless). Exit code 0 = pass, 1 = fail.
+#  Pilots the REAL campaign — every arena in Game.ARENA_SCENES, in
+#  sequence — through the full win chain and on to the victory screen,
+#  asserting the whole flow. Prints PLAYTHROUGH_OK + stats on success,
+#  or PLAYTHROUGH_FAIL + a state dump on any broken link.
+#  Run via tools/run_playthrough.ps1. Exit 0 = pass, 1 = fail.
 #
-#  Phases:
-#    0 INIT      — wait for main.tscn ("World") to become current scene
-#    1 ENGAGE    — shove the player past z=-4 so WaveManager starts
-#    2 CLEAR     — instakill every wave enemy (boss spared) until
-#                  Game.all_waves_done, keeping the player alive
-#    3 BOSS      — kill what remains (the boss) until enemy group empty
-#    4 OBJECTIVE — trip the objective and wait for the mission-clear chain
-#    5 DONE      — assert the full state and quit
+#  The loop is arena-agnostic: each arena's WaveManager resets wave state
+#  on load (Game.reset()), so the same per-frame logic drives arena 1,
+#  arena 2, ... until the objective chain swaps in victory.tscn.
+#
+#  Per-arena chain it forces and verifies:
+#    enter (push player past z=-4) -> waves spawn -> instakill each wave
+#    (boss spared) -> all_waves_done -> kill boss -> trip objective ->
+#    mission cleared -> next arena loads. After the last arena -> Victory.
 # ============================================================
 
-var _phase: int = 0
 var _t: float = 0.0
-var _phase_t: float = 0.0
-const TIMEOUT := 90.0
+var _missions_start: int = 0
+var _kills_start: int = 0
+const TIMEOUT := 180.0
+const ARENA_COUNT := 2   # keep in sync with Game.ARENA_SCENES.size()
 
 func _ready() -> void:
 	Game.full_reset()
-	Game.difficulty = 0   # easy = fewer/weaker enemies, faster loop
+	Game.difficulty = 0          # easy = fewer/weaker enemies, faster loop
+	_missions_start = Game.missions_cleared
+	_kills_start = Game.kills
 
 func _fail(reason: String) -> void:
 	var enemies := get_tree().get_nodes_in_group("enemy").size()
+	var sname := "<null>"
+	if get_tree().current_scene != null:
+		sname = get_tree().current_scene.name
 	print("PLAYTHROUGH_FAIL: ", reason)
-	print("  state: phase=%d t=%.1f kills=%d wave=%d/%d all_waves_done=%s enemies_alive=%d mission=%d missions_cleared=%d" % [
-		_phase, _t, Game.kills, Game.wave, Game.max_waves, str(Game.all_waves_done), enemies, Game.mission, Game.missions_cleared])
+	print("  state: t=%.1f scene=%s kills=%d wave=%d/%d all_waves_done=%s enemies=%d mission=%d missions_cleared=%d" % [
+		_t, sname, Game.kills, Game.wave, Game.max_waves, str(Game.all_waves_done), enemies, Game.mission, Game.missions_cleared])
 	get_tree().quit(1)
-
-func _scene_ok() -> Node:
-	var s := get_tree().current_scene
-	if s == null or s.name != "World":
-		return null
-	return s
-
-func _player() -> Node:
-	return get_tree().get_first_node_in_group("player")
 
 func _keep_player_alive(p: Node) -> void:
 	if p != null and "health" in p:
@@ -56,71 +53,62 @@ func _kill_enemies(spare_boss: bool) -> void:
 
 func _physics_process(delta: float) -> void:
 	_t += delta
-	_phase_t += delta
 	if _t > TIMEOUT:
-		_fail("timeout — loop never completed")
+		_fail("timeout — campaign never completed")
 		return
 
-	if _scene_ok() == null:
+	var scene := get_tree().current_scene
+	if scene == null:
 		return
-	var p := _player()
 
-	match _phase:
-		0:
-			if p != null:
-				_advance_phase()
-		1:
-			if p != null:
-				p.global_position = Vector3(0.0, 1.0, -7.0)
-				_keep_player_alive(p)
-			if Game.wave >= 1:
-				_advance_phase()
-			elif _phase_t > 5.0:
-				_fail("waves never started after entering arena")
-		2:
-			_keep_player_alive(p)
-			_kill_enemies(true)   # spare the boss for its own stage
-			if Game.all_waves_done:
-				_advance_phase()
-		3:
-			_keep_player_alive(p)
-			_kill_enemies(false)  # now finish the boss
-			if get_tree().get_nodes_in_group("enemy").size() == 0:
-				_advance_phase()
-			elif _phase_t > 30.0:
-				_fail("boss/stragglers never died")
-		4:
-			var obj := get_tree().get_first_node_in_group("objective")
-			if obj != null and "reached" in obj:
-				obj.reached = true
-			if Game.missions_cleared >= 1:
-				_advance_phase()
-			elif _phase_t > 8.0:
-				_fail("objective reached + waves done + no enemies, but mission never cleared")
-		5:
-			_pass()
+	# Reached the campaign-complete screen → done.
+	if scene.name == "Victory":
+		_pass()
+		return
 
-func _advance_phase() -> void:
-	print("  [phase %d OK @ t=%.1f] kills=%d wave=%d all_waves_done=%s enemies=%d" % [
-		_phase, _t, Game.kills, Game.wave, str(Game.all_waves_done),
-		get_tree().get_nodes_in_group("enemy").size()])
-	_phase += 1
-	_phase_t = 0.0
+	# Mid-transition or some other scene — wait it out.
+	if scene.name != "World":
+		return
+
+	var p := get_tree().get_first_node_in_group("player")
+	_keep_player_alive(p)
+	var enemies := get_tree().get_nodes_in_group("enemy").size()
+
+	if Game.all_waves_done and enemies == 0:
+		# Building cleared — trip the objective to finish the mission.
+		var obj := get_tree().get_first_node_in_group("objective")
+		if obj != null and "reached" in obj:
+			obj.reached = true
+	elif Game.all_waves_done:
+		# Waves done, boss (or stragglers) remain — finish them.
+		_kill_enemies(false)
+	elif Game.wave >= 1:
+		# Waves in progress (or in a resupply intermission) — mow them down,
+		# sparing the boss for its own stage.
+		_kill_enemies(true)
+		# If a resupply drop is out (intermission), walk onto it so the
+		# upgrade-pickup -> player.apply_upgrade() path gets exercised.
+		var up := get_tree().get_first_node_in_group("upgrade")
+		if up != null and p != null:
+			p.global_position = up.global_position
+	else:
+		# Not engaged yet — shove the player into the arena to start waves.
+		if p != null:
+			p.global_position = Vector3(0.0, 1.0, -7.0)
 
 func _pass() -> void:
+	var missions_done := Game.missions_cleared - _missions_start
 	var ok := true
 	var msgs: Array = []
-	if Game.kills <= 0:
-		ok = false; msgs.append("expected kills>0")
-	if not Game.all_waves_done:
-		ok = false; msgs.append("expected all_waves_done")
-	if Game.missions_cleared < 1:
-		ok = false; msgs.append("expected missions_cleared>=1")
+	if missions_done < ARENA_COUNT:
+		ok = false; msgs.append("expected %d missions cleared, got %d" % [ARENA_COUNT, missions_done])
+	if Game.kills <= _kills_start:
+		ok = false; msgs.append("expected kills to increase")
 	if Game.score <= 0:
 		ok = false; msgs.append("expected score>0")
 	if ok:
-		print("PLAYTHROUGH_OK kills=%d score=%d waves=%d missions_cleared=%d" % [
-			Game.kills, Game.score, Game.max_waves, Game.missions_cleared])
+		print("PLAYTHROUGH_OK arenas=%d kills=%d score=%d missions_cleared=%d (reached Victory)" % [
+			ARENA_COUNT, Game.kills, Game.score, Game.missions_cleared])
 		get_tree().quit(0)
 	else:
 		_fail("final assertions: " + ", ".join(msgs))

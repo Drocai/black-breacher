@@ -1,0 +1,388 @@
+[gd_scene load_steps=36 format=3 uid="uid://bb2cellblock01"]
+
+[ext_resource type="Script" path="res://player.gd" id="1_0xm2m"]
+[ext_resource type="PackedScene" path="res://breacher.glb" id="1_ig7tw"]
+[ext_resource type="PackedScene" path="res://door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://enemy.tscn" id="4_enemy"]
+[ext_resource type="AudioStream" path="res://hit.wav" id="5_hit"]
+[ext_resource type="Script" path="res://hud.gd" id="6_hud"]
+[ext_resource type="Script" path="res://objective.gd" id="7_obj"]
+[ext_resource type="Script" path="res://wave_manager.gd" id="10_wave"]
+[ext_resource type="Script" path="res://camera_rig.gd" id="11_cam"]
+[ext_resource type="AudioStream" path="res://footstep.wav" id="12_step"]
+[ext_resource type="PackedScene" path="res://crate.tscn" id="13_crate"]
+[ext_resource type="AudioStream" path="res://ambient.wav" id="14_amb"]
+[ext_resource type="Script" path="res://music.gd" id="15_music"]
+[ext_resource type="Shader" path="res://vignette.gdshader" id="16_vig"]
+[ext_resource type="Script" path="res://pause_menu.gd" id="17_pause"]
+[ext_resource type="PackedScene" path="res://barrel.tscn" id="18_barrel"]
+[ext_resource type="PackedScene" path="res://armor_pickup.tscn" id="20_armor"]
+[ext_resource type="PackedScene" path="res://mine.tscn" id="21_mine"]
+[ext_resource type="PackedScene" path="res://grenade_pickup.tscn" id="22_gp"]
+[ext_resource type="PackedScene" path="res://boss.tscn" id="23_boss"]
+[ext_resource type="PackedScene" path="res://boss_healthbar.tscn" id="24_bosshp"]
+[ext_resource type="Script" path="res://nav_baker.gd" id="25_nav"]
+
+[sub_resource type="ShaderMaterial" id="Mat_vignette"]
+shader = ExtResource("16_vig")
+shader_parameter/intensity = 0.0
+
+[sub_resource type="FastNoiseLite" id="FNL_floor"]
+frequency = 0.03
+
+[sub_resource type="NoiseTexture2D" id="Noise_floor"]
+noise = SubResource("FNL_floor")
+seamless = true
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor2"]
+albedo_color = Color(0.26, 0.27, 0.31, 1)
+albedo_texture = SubResource("Noise_floor")
+uv1_scale = Vector3(30, 30, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.4
+height = 2.1273804
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+
+[sub_resource type="Sky" id="Sky_res"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 2
+sky = SubResource("Sky_res")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[sub_resource type="FastNoiseLite" id="FNL_wall"]
+frequency = 0.2
+
+[sub_resource type="NoiseTexture2D" id="Noise_wall"]
+noise = SubResource("FNL_wall")
+seamless = true
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall2"]
+albedo_color = Color(0.5, 0.54, 0.6, 1)
+albedo_texture = SubResource("Noise_wall")
+uv1_scale = Vector3(6, 6, 6)
+metallic = 0.25
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Mat_objective"]
+albedo_color = Color(0.1, 0.9, 0.7, 1)
+emission_enabled = true
+emission = Color(0.1, 0.9, 0.7, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="BoxShape3D" id="Box_objzone"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[node name="World" type="Node3D"]
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+use_collision = true
+size = Vector3(60, 0.5, 60)
+material = SubResource("Mat_floor2")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("1_0xm2m")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0397034, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="breacher" parent="Player" instance=ExtResource("1_ig7tw")]
+
+[node name="JabSound" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("5_hit")
+
+[node name="Footsteps" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("12_step")
+volume_db = -4.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.90630776, 0.42261827, 0, -0.42261827, 0.90630776, 0, 3, 5)
+script = ExtResource("11_cam")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.6427876, 0.7660444, 0, -0.7660444, 0.6427876, 0, 10, 0)
+light_color = Color(0.85, 0.9, 1, 1)
+shadow_enabled = true
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("14_amb")
+volume_db = -12.0
+script = ExtResource("15_music")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="Door" parent="." instance=ExtResource("2_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+is_entry = true
+
+[node name="ArmorA" parent="." instance=ExtResource("20_armor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -2)
+
+[node name="GrenadeA" parent="." instance=ExtResource("22_gp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, -2)
+
+[node name="Guard1" parent="." instance=ExtResource("4_enemy")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -3.5, 0, -8)
+start_alerted = false
+initial_facing_deg = 180.0
+patrol_distance = 2.0
+
+[node name="Guard2" parent="." instance=ExtResource("4_enemy")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 3.5, 0, -8)
+start_alerted = false
+initial_facing_deg = 180.0
+patrol_distance = 2.0
+
+[node name="Room" type="Node3D" parent="."]
+
+[node name="FrontL" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.15, 2, -5)
+use_collision = true
+size = Vector3(5.7, 4, 0.3)
+material = SubResource("Mat_wall2")
+
+[node name="FrontR" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.15, 2, -5)
+use_collision = true
+size = Vector3(5.7, 4, 0.3)
+material = SubResource("Mat_wall2")
+
+[node name="WallL" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 2, -16.5)
+use_collision = true
+size = Vector3(0.3, 4, 23)
+material = SubResource("Mat_wall2")
+
+[node name="WallR" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 2, -16.5)
+use_collision = true
+size = Vector3(0.3, 4, 23)
+material = SubResource("Mat_wall2")
+
+[node name="BackWall" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -28)
+use_collision = true
+size = Vector3(14.3, 4, 0.3)
+material = SubResource("Mat_wall2")
+
+[node name="Ceiling" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -16.5)
+size = Vector3(14.3, 0.3, 23.3)
+material = SubResource("Mat_wall2")
+
+[node name="Light1" type="OmniLight3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3.6, -10)
+light_color = Color(0.75, 0.85, 1, 1)
+light_energy = 2.3
+omni_range = 14.0
+
+[node name="Light2" type="OmniLight3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 3.6, -16)
+light_color = Color(0.75, 0.85, 1, 1)
+light_energy = 2.3
+omni_range = 14.0
+
+[node name="Light3" type="OmniLight3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3.6, -21)
+light_color = Color(0.75, 0.85, 1, 1)
+light_energy = 2.3
+omni_range = 14.0
+
+[node name="Barrier" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, -16)
+use_collision = true
+size = Vector3(6, 1.5, 0.4)
+material = SubResource("Mat_wall2")
+
+[node name="PillarA" type="CSGCylinder3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 2, -12)
+radius = 0.45
+height = 4.0
+use_collision = true
+material = SubResource("Mat_wall2")
+
+[node name="PillarB" type="CSGCylinder3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 2, -20)
+radius = 0.45
+height = 4.0
+use_collision = true
+material = SubResource("Mat_wall2")
+
+[node name="CrateA" parent="Room" instance=ExtResource("13_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.6, -10)
+
+[node name="CrateB" parent="Room" instance=ExtResource("13_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0.6, -14)
+
+[node name="CrateC" parent="Room" instance=ExtResource("13_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.6, -22)
+
+[node name="CrateD" parent="Room" instance=ExtResource("13_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0.6, -24)
+
+[node name="BarrelA" parent="Room" instance=ExtResource("18_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -10)
+
+[node name="BarrelB" parent="Room" instance=ExtResource("18_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -18)
+
+[node name="ArmorB" parent="Room" instance=ExtResource("20_armor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -19)
+
+[node name="MineA" parent="Room" instance=ExtResource("21_mine")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -13)
+
+[node name="MineB" parent="Room" instance=ExtResource("21_mine")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -21)
+
+[node name="GrenadeB" parent="Room" instance=ExtResource("22_gp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0, -25)
+
+[node name="GateL" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.15, 2, -23)
+use_collision = true
+size = Vector3(5.7, 4, 0.3)
+material = SubResource("Mat_wall2")
+
+[node name="GateR" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.15, 2, -23)
+use_collision = true
+size = Vector3(5.7, 4, 0.3)
+material = SubResource("Mat_wall2")
+
+[node name="Objective" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -26)
+size = Vector3(0.8, 0.8, 0.8)
+material = SubResource("Mat_objective")
+
+[node name="ObjectiveGlow" type="OmniLight3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -26)
+light_color = Color(0.2, 1, 0.8, 1)
+light_energy = 3.0
+omni_range = 5.5
+
+[node name="Door2" parent="." instance=ExtResource("2_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -23)
+
+[node name="Boss" parent="." instance=ExtResource("23_boss")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, -25)
+
+[node name="BossHealthBar" parent="." instance=ExtResource("24_bosshp")]
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+script = ExtResource("25_nav")
+
+[node name="WaveManager" type="Node3D" parent="."]
+script = ExtResource("10_wave")
+max_waves = 4
+
+[node name="SpawnA" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -10)
+
+[node name="SpawnB" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -10)
+
+[node name="SpawnC" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18)
+
+[node name="SpawnD" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -20)
+
+[node name="SpawnE" type="Marker3D" parent="WaveManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -20)
+
+[node name="ObjectiveZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -26)
+script = ExtResource("7_obj")
+
+[node name="Shape" type="CollisionShape3D" parent="ObjectiveZone"]
+shape = SubResource("Box_objzone")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("6_hud")
+
+[node name="Vignette" type="ColorRect" parent="HUD"]
+material = SubResource("Mat_vignette")
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Health" type="ProgressBar" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 250.0
+offset_bottom = 50.0
+max_value = 100.0
+value = 100.0
+
+[node name="Status" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -140.0
+offset_top = 14.0
+offset_right = 140.0
+offset_bottom = 46.0
+theme_override_font_sizes/font_size = 26
+text = "ENEMIES: 0"
+horizontal_alignment = 1
+
+[node name="BreachPrompt" type="Label" parent="HUD"]
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -80.0
+offset_right = 150.0
+offset_bottom = -44.0
+theme_override_font_sizes/font_size = 30
+text = "Press F to Breach"
+horizontal_alignment = 1
+
+[node name="Controls" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 78.0
+offset_right = 420.0
+offset_bottom = 320.0
+theme_override_font_sizes/font_size = 18
+text = "BLACK BREACHER — CELL BLOCK
+WASD / Arrows  Move      Shift  Run      C  Sneak
+J / Left-Click  Strike (combo)
+Right-Click  Kick       X  Halligan sweep
+E  Special       Q  Dodge
+Ctrl  Block / Parry     V  Grab / Throw     G  Grenade
+F  Breach door     R  Restart     H  Toggle help"
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+process_mode = 3
+script = ExtResource("17_pause")
+
+[node name="Panel" type="ColorRect" parent="PauseMenu"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Label" type="Label" parent="PauseMenu/Panel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -70.0
+offset_right = 150.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 28
+text = "PAUSED
+
+Esc — Resume
+R — Restart"
+horizontal_alignment = 1
+vertical_alignment = 1

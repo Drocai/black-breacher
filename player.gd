@@ -461,6 +461,24 @@ func add_armor(amount: int) -> void:
 func add_grenades(amount: int) -> void:
 	grenades = mini(grenades + amount, 9)
 
+# Permanent run upgrade picked up between waves (upgrade_pickup.gd).
+func apply_upgrade(kind: String) -> void:
+	match kind:
+		"VITALITY":
+			max_health += 25
+			health = max_health
+		"PLATING":
+			add_armor(50)
+		"ORDNANCE":
+			add_grenades(2)
+		"ADRENALINE":
+			speed += 0.6
+			run_speed += 0.8
+		_:
+			return
+	Game.log_event("upgrade applied: " + kind)
+	shake(0.12, 0.2)
+
 func _throw_grenade() -> void:
 	if _busy() or grenades <= 0:
 		return

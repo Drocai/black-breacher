@@ -13,6 +13,11 @@ const EXPLOSION := preload("res://explosion.tscn")
 const SHOCKWAVE := preload("res://shockwave.tscn")
 const SAVE_PATH := "user://blackbreacher_save.cfg"
 
+# Campaign arenas in order. mission 1 → index 0, etc. Past the last one,
+# the campaign is complete (→ victory screen).
+const ARENA_SCENES: Array = ["res://main.tscn", "res://main2.tscn"]
+const VICTORY_SCENE := "res://victory.tscn"
+
 # run state
 var kills: int = 0
 var score: int = 0
@@ -110,6 +115,16 @@ func add_kill(points: int = 100) -> void:
 	score += points * combo_mult()
 	if score > best_score:
 		best_score = score
+
+# Scene path for the current `mission` value, or "" if the campaign is done.
+func scene_for_current_mission() -> String:
+	var idx: int = mission - 1
+	if idx >= 0 and idx < ARENA_SCENES.size():
+		return ARENA_SCENES[idx]
+	return ""
+
+func is_final_mission() -> bool:
+	return mission >= ARENA_SCENES.size()
 
 func on_mission_cleared() -> void:
 	missions_cleared += 1

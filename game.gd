@@ -19,6 +19,7 @@ var wave: int = 0
 var max_waves: int = 3
 var wave_enemies_left: int = 0
 var all_waves_done: bool = false
+var detected: bool = false   # set true once any guard spots the player this mission
 
 # persistent
 var best_score: int = 0
@@ -37,6 +38,17 @@ func reset() -> void:
 	wave = 0
 	wave_enemies_left = 0
 	all_waves_done = false
+	detected = false
+
+# Called when the entry door is breached: reward a silent (ghost) approach.
+func evaluate_stealth() -> void:
+	if not detected:
+		score += 1000
+		if score > best_score:
+			best_score = score
+		log_event("GHOST — silent entry (+1000)")
+	else:
+		log_event("loud entry")
 
 func full_reset() -> void:
 	mission = 1

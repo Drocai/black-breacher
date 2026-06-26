@@ -8,6 +8,7 @@ extends Node3D
 
 @export var open_angle_deg: float = 110.0
 @export var open_time: float = 0.5
+@export var is_entry: bool = false   # the entry door scores the silent/ghost bonus
 
 var breached: bool = false
 
@@ -30,6 +31,9 @@ func breach() -> void:
 	if breached:
 		return
 	breached = true
+
+	if is_entry:
+		Game.evaluate_stealth()
 
 	# Clear the doorway so he can walk through
 	var col := get_node_or_null("Hinge/Panel/Collision")

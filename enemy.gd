@@ -26,6 +26,7 @@ extends CharacterBody3D
 @export var view_distance: float = 9.0
 @export var view_dot: float = 0.4
 @export var detect_time: float = 0.8
+@export var tint: Color = Color(1, 1, 1, 1)
 @export var patrol_distance: float = 0.0   # >0 = an unaware guard paces this far and back
 
 var health: int
@@ -58,6 +59,7 @@ func _ready() -> void:
 	# Per-instance material so hit-flash / attack-glow don't affect other enemies.
 	if mesh.material_override is StandardMaterial3D:
 		_mat = mesh.material_override.duplicate()
+		_mat.albedo_color = _mat.albedo_color * tint
 		mesh.material_override = _mat
 
 func _physics_process(delta: float) -> void:
@@ -172,6 +174,7 @@ func _update_unaware(delta: float) -> void:
 		_awareness += delta / detect_time
 		if _awareness >= 1.0 and not alerted:
 			alerted = true
+			Game.detected = true
 			_raise_alarm()
 	else:
 		_awareness = maxf(0.0, _awareness - delta * 0.6)

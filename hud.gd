@@ -35,7 +35,8 @@ func _process(_delta: float) -> void:
 	elif Game.wave > 0:
 		status.text = "MISSION %d   WAVE %d/%d   ENEMIES %d   SCORE %d" % [Game.mission, Game.wave, Game.max_waves, Game.wave_enemies_left, Game.score]
 	else:
-		status.text = "MISSION %d   breach the door" % Game.mission
+		var st := "UNDETECTED" if not Game.detected else "DETECTED"
+		status.text = "MISSION %d   breach the door   [%s]" % [Game.mission, st]
 
 	if players.size() > 0 and ("sneaking" in players[0]) and players[0].sneaking:
 		status.text = "[ SNEAKING ]   " + status.text

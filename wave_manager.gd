@@ -79,11 +79,13 @@ func _spawn_enemy(kind: String, pos: Vector3) -> void:
 			e.attack_damage = 14
 			e.knockback_force = 1.5
 			e.scale = Vector3.ONE * 1.3
+			e.tint = Color(0.55, 0.6, 0.8)
 		"fast":
 			e.max_health = 2
 			e.move_speed = 4.5
 			e.attack_damage = 5
 			e.scale = Vector3.ONE * 0.85
+			e.tint = Color(1.4, 1.1, 0.5)
 		_:
 			e.max_health = int(round(4 * hp_scale))
 			e.scale = Vector3.ONE * 0.9

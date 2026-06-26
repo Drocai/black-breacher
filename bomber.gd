@@ -25,6 +25,7 @@ var _stagger_time: float = 0.0
 var _player: Node3D
 
 @onready var mesh: MeshInstance3D = $Mesh
+@onready var _agent: NavigationAgent3D = get_node_or_null("NavAgent")
 
 func _ready() -> void:
 	health = max_health
@@ -66,10 +67,16 @@ func _physics_process(delta: float) -> void:
 		var dir := to_player.normalized()
 
 		if dist > explode_range:
-			velocity.x = dir.x * move_speed
-			velocity.z = dir.z * move_speed
-			# Snagged on a wall/crate last frame? veer sideways to slip around it.
-			if is_on_wall():
+			var move_dir := dir
+			if _agent != null:
+				_agent.target_position = p.global_position
+				var to_next: Vector3 = _agent.get_next_path_position() - global_position
+				to_next.y = 0.0
+				if to_next.length() > 0.1:
+					move_dir = to_next.normalized()
+			velocity.x = move_dir.x * move_speed
+			velocity.z = move_dir.z * move_speed
+			if move_dir == dir and is_on_wall():
 				var perp := Vector3(-dir.z, 0.0, dir.x)
 				velocity.x += perp.x * move_speed
 				velocity.z += perp.z * move_speed

@@ -39,16 +39,15 @@ func _physics_process(delta: float) -> void:
 				p.global_position = Vector3(0.0, 1.0, -10.0)
 				if "health" in p:
 					p.health = p.max_health
+			# Pose the player and a few enemies for a clean combat-readability
+			# frame (no forced FX) — audits whether threats/scale/distance read.
 			var enemies := get_tree().get_nodes_in_group("enemy")
-			if enemies.size() > 0 and p != null and enemies[0] is Node3D:
-				enemies[0].global_position = p.global_position + Vector3(2.2, 0.0, 0.0)
-			# Fire a slam mid-pose so dust/debris/shockwave are in-frame, and
-			# flash the damage overlay, for a real impact-moment screenshot.
-			if _t > 2.2 and not _slammed and p != null and p.has_method("_apply_seismic_slam"):
-				p._apply_seismic_slam()
-				_slammed = true
-			if _t > 2.55:
-				Game.hit_flash = 0.7
+			if p != null:
+				for i in enemies.size():
+					if enemies[i] is Node3D:
+						var ang := float(i) * 1.1
+						enemies[i].global_position = p.global_position + Vector3(sin(ang) * (2.5 + i), 0.0, cos(ang) * 2.0 - 1.0)
+			if _t > 2.5:
 				await _grab("user://bb_combat.png")
 				get_tree().quit()
 				_phase = 3

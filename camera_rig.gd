@@ -7,10 +7,10 @@ extends Camera3D
 #  Trackpad-friendly: no mouse-look, fully automatic.
 # ============================================================
 
-@export var offset: Vector3 = Vector3(0, 3.4, 5.8)
+@export var offset: Vector3 = Vector3(0, 2.9, 5.2)
 @export var follow_lerp: float = 9.0
 @export var look_ahead: float = 1.4
-@export var pitch_degrees: float = -28.0
+@export var pitch_degrees: float = -22.0
 @export var punch_amount: float = 0.32   # how far the hero punch-in pulls the camera in
 @export var hero_drop: float = 1.3       # how far the camera dips to look UP at him
 @export var hero_pitch_up: float = 7.0   # extra up-tilt (deg) during a hero beat

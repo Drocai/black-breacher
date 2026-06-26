@@ -174,7 +174,7 @@ func _update_unaware(delta: float) -> void:
 		_awareness += delta / detect_time
 		if _awareness >= 1.0 and not alerted:
 			alerted = true
-			Game.detected = true
+			Game.raise_detection()
 			_raise_alarm()
 	else:
 		_awareness = maxf(0.0, _awareness - delta * 0.6)

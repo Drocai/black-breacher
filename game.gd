@@ -25,13 +25,28 @@ var detected: bool = false   # set true once any guard spots the player this mis
 var best_score: int = 0
 var missions_cleared: int = 0
 
+var _alert: AudioStreamPlayer
+
 func _ready() -> void:
 	# Hitstop scales time down; a scene reload mid-hitstop could otherwise
 	# leave the whole game in slow-motion. Normalize on boot (player._ready
 	# also normalizes on every scene load).
 	Engine.time_scale = 1.0
 	_load()
+	_alert = AudioStreamPlayer.new()
+	_alert.stream = load("res://alert.wav")
+	_alert.volume_db = -3.0
+	add_child(_alert)
 	log_event("boot — best %d, missions cleared %d" % [best_score, missions_cleared])
+
+# Flip to detected once, with an alert sting (called by guards on first spot).
+func raise_detection() -> void:
+	if detected:
+		return
+	detected = true
+	if _alert:
+		_alert.play()
+	log_event("detected!")
 
 func reset() -> void:
 	# per-arena state only; mission/kills/score persist across mission reloads

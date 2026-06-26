@@ -26,11 +26,13 @@ extends CharacterBody3D
 @export var view_distance: float = 9.0
 @export var view_dot: float = 0.4
 @export var detect_time: float = 0.8
+@export var patrol_distance: float = 0.0   # >0 = an unaware guard paces this far and back
 
 var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var alerted: bool = true
 var _awareness: float = 0.0
+var _patrol_origin: Vector3 = Vector3.ZERO
 var _down: bool = false
 var _atk_cd: float = 0.0
 var _stagger_time: float = 0.0
@@ -49,6 +51,7 @@ func _ready() -> void:
 	add_to_group("enemy")
 	alerted = start_alerted
 	mesh.rotation.y = deg_to_rad(initial_facing_deg)
+	_patrol_origin = global_position
 
 func _physics_process(delta: float) -> void:
 	# Held by the player — the player positions us; no own physics.
@@ -126,8 +129,17 @@ func _get_player() -> Node3D:
 	return _player
 
 func _update_unaware(delta: float) -> void:
-	velocity.x = move_toward(velocity.x, 0.0, move_speed)
-	velocity.z = move_toward(velocity.z, 0.0, move_speed)
+	if patrol_distance > 0.0:
+		# Pace along the facing axis; turn back toward home when past the limit.
+		var pf := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+		velocity.x = pf.x * move_speed * 0.5
+		velocity.z = pf.z * move_speed * 0.5
+		if global_position.distance_to(_patrol_origin) > patrol_distance:
+			var back: Vector3 = _patrol_origin - global_position
+			mesh.rotation.y = atan2(back.x, back.z)
+	else:
+		velocity.x = move_toward(velocity.x, 0.0, move_speed)
+		velocity.z = move_toward(velocity.z, 0.0, move_speed)
 	var p := _get_player()
 	if p == null:
 		return

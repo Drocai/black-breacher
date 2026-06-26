@@ -37,6 +37,14 @@ extends CharacterBody3D
 @export var parry_window: float = 0.2
 @export var grab_range: float = 2.6
 @export var throw_force: float = 14.0
+@export var halligan_range: float = 3.2
+@export var halligan_damage: int = 5
+@export var halligan_cooldown: float = 1.4
+@export_group("Halligan grip (tune in editor)")
+@export var halligan_offset: Vector3 = Vector3(0.05, 0.02, 0.0)
+@export var halligan_rotation_deg: Vector3 = Vector3(0.0, 90.0, 0.0)
+@export var halligan_scale: float = 1.0
+@export_group("")
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -75,6 +83,7 @@ var _loco_speed: float = 1.0
 var _step_timer: float = 0.0
 var sneaking: bool = false
 var _held_enemy: Node3D = null
+var _halligan_cd: float = 0.0
 
 func _ready() -> void:
 	Engine.time_scale = 1.0   # normalize in case a reload happened mid-hitstop
@@ -86,6 +95,7 @@ func _ready() -> void:
 	# movement (foot-sliding). Run anims at full speed; locomotion speed is
 	# then driven per-frame by actual velocity below.
 	anim.speed_scale = 1.0
+	_attach_halligan()
 
 # Apply the Meshy-generated PBR skin to the rigged mesh at runtime.
 # (Retexture strips the rig, so we keep the animated glb and just swap the
@@ -115,6 +125,8 @@ func _input(event: InputEvent) -> void:
 				sneaking = not sneaking
 			KEY_V:
 				_try_grab_or_throw()
+			KEY_X:
+				_try_halligan()
 			KEY_R:
 				Game.full_reset()
 				get_tree().reload_current_scene()
@@ -143,6 +155,8 @@ func _physics_process(delta: float) -> void:
 		_combo_index = 0
 	if _special_cd > 0.0:
 		_special_cd -= delta
+	if _halligan_cd > 0.0:
+		_halligan_cd -= delta
 	if _dodge_cd > 0.0:
 		_dodge_cd -= delta
 	if _invuln > 0.0:
@@ -371,6 +385,55 @@ func _hero_cam(strength: float = 1.0) -> void:
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam and cam.has_method("punch_in"):
 		cam.punch_in(strength)
+
+# --- Halligan (signature gear): visible bar in his hand + a heavy sweep (X) ---
+func _attach_halligan() -> void:
+	var skel := mesh.find_child("Skeleton3D", true, false)
+	if not (skel is Skeleton3D):
+		return
+	var idx: int = skel.find_bone("RightHand")
+	if idx < 0:
+		return
+	var att := BoneAttachment3D.new()
+	skel.add_child(att)
+	att.bone_idx = idx
+	var h := preload("res://halligan.tscn").instantiate()
+	h.position = halligan_offset
+	h.rotation = Vector3(deg_to_rad(halligan_rotation_deg.x), deg_to_rad(halligan_rotation_deg.y), deg_to_rad(halligan_rotation_deg.z))
+	h.scale = Vector3.ONE * halligan_scale
+	att.add_child(h)
+
+func _try_halligan() -> void:
+	if _busy() or _halligan_cd > 0.0:
+		return
+	_halligan_cd = halligan_cooldown
+	_face_nearest_enemy()
+	_play_action("Charged_Upward_Slash", 1.1)
+	get_tree().create_timer(0.28).timeout.connect(_apply_halligan_hit)
+
+func _apply_halligan_hit() -> void:
+	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	var landed := false
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if not (e is Node3D) or not e.has_method("take_hit"):
+			continue
+		var to: Vector3 = e.global_position - global_position
+		to.y = 0.0
+		if to.length() <= halligan_range and fwd.dot(to.normalized()) > -0.1:
+			e.take_hit(halligan_damage)
+			if e.has_method("stagger"):
+				e.stagger(Vector3(to.x, 0.0, to.z).normalized())
+			landed = true
+	for b in get_tree().get_nodes_in_group("breakable"):
+		if b is Node3D and b.has_method("take_hit") and global_position.distance_to(b.global_position) <= halligan_range:
+			b.take_hit(3)
+			landed = true
+	if landed:
+		if jab_sound:
+			jab_sound.play()
+		shake(0.2, 0.3)
+		_hero_cam(0.6)
+		_hitstop(0.08)
 
 # --- Damage / respawn ---
 func heal(amount: int) -> void:

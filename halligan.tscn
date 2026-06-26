@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://bbhalligan01"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.18, 0.18, 0.2, 1)
+metallic = 0.8
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="Shaft"]
+size = Vector3(0.045, 0.045, 0.8)
+
+[sub_resource type="BoxMesh" id="Fork"]
+size = Vector3(0.05, 0.16, 0.14)
+
+[sub_resource type="BoxMesh" id="Adze"]
+size = Vector3(0.16, 0.045, 0.1)
+
+[node name="Halligan" type="Node3D"]
+
+[node name="Shaft" type="MeshInstance3D" parent="."]
+mesh = SubResource("Shaft")
+material_override = SubResource("Mat_metal")
+
+[node name="Fork" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0.42)
+mesh = SubResource("Fork")
+material_override = SubResource("Mat_metal")
+
+[node name="Adze" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, 0, -0.36)
+mesh = SubResource("Adze")
+material_override = SubResource("Mat_metal")

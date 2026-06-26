@@ -52,8 +52,9 @@ sky_material = SubResource("Sky_mat")
 background_mode = 2
 sky = SubResource("Sky_res")
 ambient_light_source = 3
+ambient_light_energy = 0.26
 tonemap_mode = 3
-tonemap_exposure = 1.05
+tonemap_exposure = 0.88
 ssao_enabled = true
 ssao_radius = 1.5
 ssao_intensity = 2.0
@@ -197,20 +198,20 @@ material = SubResource("Mat_wall2")
 [node name="Light1" type="OmniLight3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3.6, -10)
 light_color = Color(0.75, 0.85, 1, 1)
-light_energy = 2.3
-omni_range = 14.0
+light_energy = 1.9
+omni_range = 11.0
 
 [node name="Light2" type="OmniLight3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 3.6, -16)
 light_color = Color(0.75, 0.85, 1, 1)
-light_energy = 2.3
-omni_range = 14.0
+light_energy = 1.9
+omni_range = 11.0
 
 [node name="Light3" type="OmniLight3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3.6, -21)
 light_color = Color(0.75, 0.85, 1, 1)
-light_energy = 2.3
-omni_range = 14.0
+light_energy = 1.9
+omni_range = 11.0
 
 [node name="Barrier" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, -16)

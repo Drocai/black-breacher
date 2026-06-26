@@ -48,6 +48,10 @@ func breach() -> void:
 	if dust:
 		dust.restart()
 		dust.emitting = true
+		# Deep concussive thud + a ground shockwave at the threshold so the
+		# breach lands with real weight.
+		Game.spawn_sound_3d(global_position, "res://breach_impact.wav", 0.0)
+		Game.spawn_shockwave(global_position + Vector3(0.0, 0.05, 0.0), Color(0.85, 0.85, 1.0), 3.0)
 
 	# Swing it open with a little overshoot for impact
 	var t := create_tween()

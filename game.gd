@@ -10,6 +10,7 @@ extends Node
 const DMG_NUM := preload("res://damage_number.tscn")
 const SPARK := preload("res://hitspark.tscn")
 const EXPLOSION := preload("res://explosion.tscn")
+const SHOCKWAVE := preload("res://shockwave.tscn")
 const SAVE_PATH := "user://blackbreacher_save.cfg"
 
 # run state
@@ -142,6 +143,43 @@ func spawn_explosion(pos: Vector3) -> void:
 	var fx := EXPLOSION.instantiate()
 	scene.add_child(fx)
 	fx.global_position = pos
+	# A ground ring + a deep concussive bang sell the blast bigger.
+	spawn_shockwave(pos + Vector3(0.0, 0.05, 0.0), Color(1.0, 0.55, 0.2), 5.0)
+	spawn_sound_3d(pos, "res://flashbang.wav", -2.0)
+
+# A flat expanding ground ring for heavy impacts (explosions, finishers,
+# boss slams). Purely cosmetic. Tunable color / radius per call.
+func spawn_shockwave(pos: Vector3, ring_color: Color = Color(1.0, 0.7, 0.35), ring_scale: float = 4.0) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var sw := SHOCKWAVE.instantiate()
+	# Set the exports BEFORE add_child so _ready() reads the tuned values.
+	if "color" in sw:
+		sw.color = ring_color
+	if "max_scale" in sw:
+		sw.max_scale = ring_scale
+	scene.add_child(sw)
+	sw.global_position = pos
+
+# Fire-and-forget positional one-shot. Spawns an AudioStreamPlayer3D at pos,
+# plays the stream, and frees itself when finished.
+func spawn_sound_3d(pos: Vector3, stream_path: String, vol_db: float = 0.0, pitch: float = 1.0) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var stream := load(stream_path)
+	if stream == null:
+		return
+	var p := AudioStreamPlayer3D.new()
+	p.stream = stream
+	p.volume_db = vol_db
+	p.pitch_scale = pitch
+	p.unit_size = 8.0
+	scene.add_child(p)
+	p.global_position = pos
+	p.finished.connect(p.queue_free)
+	p.play()
 
 func log_event(msg: String) -> void:
 	print("[BB] ", msg)

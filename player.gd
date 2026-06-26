@@ -247,6 +247,9 @@ func _tick_footsteps(delta: float, hspeed: float) -> void:
 	_step_timer -= delta
 	if _step_timer <= 0.0:
 		footstep_sound.play()
+		# Layer a deep sub-thump under every stride so his sheer size reads
+		# in the audio, not just the silhouette.
+		Game.spawn_sound_3d(global_position, "res://heavy_step.wav", -6.0)
 		_step_timer = clampf(2.6 / maxf(hspeed, 0.1), 0.28, 0.6)
 
 func _busy() -> bool:
@@ -437,6 +440,10 @@ func _apply_halligan_hit() -> void:
 	if landed:
 		if jab_sound:
 			jab_sound.play()
+		# Halligan pry-bar lands like a sledge — deep thud + ground ring.
+		var impact: Vector3 = global_position + fwd * (halligan_range * 0.5)
+		Game.spawn_sound_3d(impact, "res://breach_impact.wav", -3.0)
+		Game.spawn_shockwave(impact + Vector3(0.0, 0.05, 0.0), Color(1.0, 0.75, 0.4), 2.2)
 		shake(0.2, 0.3)
 		_hero_cam(0.6)
 		_hitstop(0.08)

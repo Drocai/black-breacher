@@ -21,6 +21,8 @@
 [ext_resource type="PackedScene" path="res://armor_pickup.tscn" id="20_armor"]
 [ext_resource type="PackedScene" path="res://mine.tscn" id="21_mine"]
 [ext_resource type="PackedScene" path="res://grenade_pickup.tscn" id="22_gp"]
+[ext_resource type="PackedScene" path="res://boss.tscn" id="23_boss"]
+[ext_resource type="PackedScene" path="res://boss_healthbar.tscn" id="24_bosshp"]
 
 [sub_resource type="ShaderMaterial" id="Mat_vignette"]
 shader = ExtResource("16_vig")
@@ -334,12 +336,10 @@ omni_range = 5.0
 [node name="Door2" parent="." instance=ExtResource("2_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -17)
 
-[node name="Boss" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, -22)
-max_health = 16
-move_speed = 1.8
-attack_damage = 16
-pickup_drop_chance = 1.0
+[node name="Boss" parent="." instance=ExtResource("23_boss")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, -22)
+
+[node name="BossHealthBar" parent="." instance=ExtResource("24_bosshp")]
 
 [node name="WaveManager" type="Node3D" parent="."]
 script = ExtResource("10_wave")

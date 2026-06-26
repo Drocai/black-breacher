@@ -283,6 +283,8 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
 - **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
 
+**Title + difficulty (June 2026):** boot scene is now **`title.tscn`** (`run/main_scene`), `title.gd` → EASY/NORMAL/HARD buttons set `Game.difficulty` then `change_scene_to_file("res://main.tscn")`. Difficulty scales via `Game.hp_mult/dmg_mult/count_bonus/player_hp` (applied in `wave_manager._spawn_enemy` and `player._ready`). **F5 now opens the title — pick a difficulty to enter the game.** Shows best score / missions cleared.
+
 **QoL/onboarding (June 2026):** in-game **controls overlay** (`HUD/Controls`, auto-shows ~7s, **H** toggles, `hud.gd`), **pause menu** (`pause_menu.gd`, `PauseMenu` CanvasLayer, PROCESS_MODE_ALWAYS — **Esc** pause/resume, **R** restart), **low-health red vignette** (`vignette.gdshader` on `HUD/Vignette`, driven by `hud.gd` from health). README refreshed with full controls + loop. Full control list: WASD/Shift/Space/C-sneak/J-or-LMB/RMB-kick/X-halligan/E-special/Q-dodge/Ctrl-block/V-grab-throw/F-breach/Esc-pause/H-help/R-restart.
 
 **Audio atmosphere (June 2026):** looping dark **ambient drone** (`ambient.wav` synth, `music.gd` sets `AudioStreamWAV.LOOP_FORWARD` + plays; `Music` node in main.tscn, -12dB) for "the Black" mood; **detection alert sting** (`alert.wav`, played once by `Game.raise_detection()` which guards now call instead of setting `detected` directly). All audio synth-generated via PowerShell, LFS-tracked.

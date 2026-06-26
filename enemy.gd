@@ -40,6 +40,9 @@ var _grabbed: bool = false
 var _thrown: bool = false
 var _thrown_time: float = 0.0
 var _player: Node3D
+var _windup: float = 0.0
+var _windup_target: Node3D
+var _mat: StandardMaterial3D
 
 const PICKUP_SCENE := preload("res://pickup.tscn")
 
@@ -52,6 +55,10 @@ func _ready() -> void:
 	alerted = start_alerted
 	mesh.rotation.y = deg_to_rad(initial_facing_deg)
 	_patrol_origin = global_position
+	# Per-instance material so hit-flash / attack-glow don't affect other enemies.
+	if mesh.material_override is StandardMaterial3D:
+		_mat = mesh.material_override.duplicate()
+		mesh.material_override = _mat
 
 func _physics_process(delta: float) -> void:
 	# Held by the player — the player positions us; no own physics.
@@ -89,6 +96,17 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
+	# Winding up an attack — committed; holds position and telegraphs (red glow),
+	# giving the player a window to block / parry / dodge / step out of range.
+	if _windup > 0.0:
+		_windup -= delta
+		velocity.x = move_toward(velocity.x, 0.0, move_speed)
+		velocity.z = move_toward(velocity.z, 0.0, move_speed)
+		if _windup <= 0.0:
+			_land_attack()
+		move_and_slide()
+		return
+
 	if _atk_cd > 0.0:
 		_atk_cd -= delta
 
@@ -111,7 +129,7 @@ func _physics_process(delta: float) -> void:
 			velocity.x = move_toward(velocity.x, 0.0, move_speed)
 			velocity.z = move_toward(velocity.z, 0.0, move_speed)
 			if dist <= attack_range and _atk_cd <= 0.0:
-				_attack(player)
+				_begin_attack(player)
 
 		if dist <= detect_range:
 			mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(dir.x, dir.z), 8.0 * delta)
@@ -175,13 +193,33 @@ func _raise_alarm() -> void:
 			e.alerted = true
 	Game.log_event("alarm raised")
 
-func _attack(player: Node) -> void:
+func _begin_attack(player: Node3D) -> void:
 	_atk_cd = attack_cooldown
+	_windup = 0.4
+	_windup_target = player
+	_set_glow(true)
 	var t := create_tween()
-	t.tween_property(mesh, "position:z", -0.35, 0.08)
-	t.tween_property(mesh, "position:z", 0.0, 0.14)
-	if player.has_method("take_damage"):
-		player.take_damage(attack_damage)
+	t.tween_property(mesh, "position:z", 0.18, 0.35)   # anticipation pull-back
+
+func _land_attack() -> void:
+	_set_glow(false)
+	var t := create_tween()
+	t.tween_property(mesh, "position:z", -0.4, 0.07)   # lunge
+	t.tween_property(mesh, "position:z", 0.0, 0.12)
+	var p := _windup_target
+	if is_instance_valid(p) and p.has_method("take_damage"):
+		if global_position.distance_to(p.global_position) <= attack_range + 0.5:
+			p.take_damage(attack_damage)
+
+func _set_glow(on: bool) -> void:
+	if _mat == null:
+		return
+	_mat.emission_enabled = on
+	if on:
+		_mat.emission = Color(1.0, 0.25, 0.1)
+		_mat.emission_energy_multiplier = 2.5
+	else:
+		_mat.emission_energy_multiplier = 0.0
 
 func take_hit(damage: int) -> void:
 	if _down:
@@ -251,6 +289,12 @@ func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
+	if _mat:
+		_mat.emission_enabled = true
+		_mat.emission = Color(1.0, 0.15, 0.1)
+		var t2 := create_tween()
+		t2.tween_property(_mat, "emission_energy_multiplier", 3.5, 0.02)
+		t2.tween_property(_mat, "emission_energy_multiplier", 0.0, 0.16)
 
 func _knockback_anim() -> void:
 	var t := create_tween()

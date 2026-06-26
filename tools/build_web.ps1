@@ -33,15 +33,31 @@ if (-not (Test-Path "$tplDir\web_nothreads_release.zip")) {
 name="Web"
 platform="Web"
 runnable=true
+advanced_options=false
+dedicated_server=false
+custom_features=""
+export_filter="all_resources"
+include_filter=""
+exclude_filter=""
 export_path="build/web/index.html"
+patches=PackedStringArray()
+encryption_include_filters=""
+encryption_exclude_filters=""
+seed=0
+encrypt_pck=false
+encrypt_directory=false
+script_export_mode=2
 
 [preset.0.options]
 variant/extensions_support=false
 variant/thread_support=false
+vram_texture_compression/for_desktop=true
+vram_texture_compression/for_mobile=false
 html/export_icon=true
 html/canvas_resize_policy=2
 html/focus_canvas_on_start=true
-'@ | Set-Content -Encoding utf8 "$proj\export_presets.cfg"
+progressive_web_app/enabled=false
+'@ | Set-Content -Encoding ascii "$proj\export_presets.cfg"   # ascii = no BOM (Godot rejects a BOM'd .cfg)
 
 # 3. Export.
 $out = Join-Path $proj "build\web"

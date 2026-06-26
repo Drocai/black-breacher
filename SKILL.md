@@ -283,6 +283,11 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
 - **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
 
+**Breach dynamics (June 2026):**
+- **Breakable crates** (`crate.tscn`/`crate.gd`, group "breakable", wood-noise) — strike them to burst open and drop a pickup. `player._apply_melee_hit` now also damages the "breakable" group.
+- **Finisher:** hitting an enemy that `is_staggered()` AND `health <= 4` executes it (`take_hit(999)` + extra shake/spark) — rewards setting up with special/grab-throw/shove.
+- **Shove-aside:** `player._shove_aside(hspeed)` after `move_and_slide` staggers any "enemy" collider he barrels into at speed > 4 (his bulk reads in motion).
+
 **Harden + save/log + grab-throw (June 2026):**
 - **Save:** `Game` persists `best_score` + `missions_cleared` to `user://blackbreacher_save.cfg` (ConfigFile); loaded on boot, saved on mission clear (`Game.on_mission_cleared()`).
 - **Logging:** `Game.log_event()` → `[BB] ...` prints (boot, mission cleared, takedown, player down).

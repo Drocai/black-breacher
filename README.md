@@ -37,6 +37,7 @@ Then press **F5** to play. (Press **H** in-game any time to toggle the controls 
 | **Q** | Dodge (brief i-frames) |
 | **Ctrl** (hold) | Block — tap as you're hit to **parry** |
 | **V** | Grab, then **V** again to throw |
+| **G** | Throw a grenade (limited count; pick up more) |
 | **F** | Breach a door in range |
 | **R** | Restart · **H** Toggle controls |
 

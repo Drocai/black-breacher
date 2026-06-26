@@ -65,6 +65,7 @@ var _pending_breach: Node = null
 const JAB_CLIPS := ["Right_Jab_from_Guard", "Left_Hook_from_Guard", "Right_Upper_Hook_from_Guard", "Right_Uppercut_from_Guard"]
 const JAB_DMG := [1, 1, 1, 2]
 const KICK_CLIPS := ["High_Kick", "Step_in_High_Kick", "Boxing_Guard_Right_Straight_Kick"]
+const GRENADE_SCENE := preload("res://grenade.tscn")
 var _combo_index: int = 0
 var _combo_timer: float = 0.0
 var _kick_index: int = 0
@@ -85,6 +86,7 @@ var sneaking: bool = false
 var _held_enemy: Node3D = null
 var _halligan_cd: float = 0.0
 var armor: int = 0
+var grenades: int = 2
 
 func _ready() -> void:
 	Engine.time_scale = 1.0   # normalize in case a reload happened mid-hitstop
@@ -127,6 +129,8 @@ func _input(event: InputEvent) -> void:
 				sneaking = not sneaking
 			KEY_V:
 				_try_grab_or_throw()
+			KEY_G:
+				_throw_grenade()
 			KEY_X:
 				_try_halligan()
 			KEY_R:
@@ -443,6 +447,22 @@ func heal(amount: int) -> void:
 
 func add_armor(amount: int) -> void:
 	armor = mini(armor + amount, 100)
+
+func add_grenades(amount: int) -> void:
+	grenades = mini(grenades + amount, 9)
+
+func _throw_grenade() -> void:
+	if _busy() or grenades <= 0:
+		return
+	grenades -= 1
+	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	var g := GRENADE_SCENE.instantiate()
+	get_tree().current_scene.add_child(g)
+	g.global_position = global_position + fwd * 0.8 + Vector3(0.0, 1.4, 0.0)
+	if g.has_method("launch"):
+		g.launch(fwd, 11.0)
+	_play_action("Push_Forward_and_Stop")
+	shake(0.08, 0.15)
 
 func _face_nearest_enemy() -> void:
 	var nearest: Node3D = null

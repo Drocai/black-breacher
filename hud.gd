@@ -60,3 +60,7 @@ func _process(delta: float) -> void:
 		status.text = "[ SNEAKING ]   " + status.text
 	if players.size() > 0 and ("armor" in players[0]) and players[0].armor > 0:
 		status.text += "   ARMOR %d" % players[0].armor
+	if players.size() > 0 and ("grenades" in players[0]):
+		status.text += "   GRENADES %d" % players[0].grenades
+	if Game.combo > 1:
+		status.text += "   x%d COMBO" % Game.combo_mult()

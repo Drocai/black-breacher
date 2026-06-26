@@ -22,6 +22,8 @@ var max_waves: int = 3
 var wave_enemies_left: int = 0
 var all_waves_done: bool = false
 var detected: bool = false   # set true once any guard spots the player this mission
+var combo: int = 0
+var _combo_timer: float = 0.0
 
 # persistent
 var best_score: int = 0
@@ -56,6 +58,8 @@ func reset() -> void:
 	wave_enemies_left = 0
 	all_waves_done = false
 	detected = false
+	combo = 0
+	_combo_timer = 0.0
 
 # Called when the entry door is breached: reward a silent (ghost) approach.
 func evaluate_stealth() -> void:
@@ -89,9 +93,20 @@ func count_bonus() -> int:
 func player_hp() -> int:
 	return [150, 100, 80][_diff()]
 
+func _process(delta: float) -> void:
+	if _combo_timer > 0.0:
+		_combo_timer -= delta
+		if _combo_timer <= 0.0:
+			combo = 0
+
+func combo_mult() -> int:
+	return clampi(combo, 1, 5)
+
 func add_kill(points: int = 100) -> void:
 	kills += 1
-	score += points
+	combo += 1
+	_combo_timer = 3.0
+	score += points * combo_mult()
 	if score > best_score:
 		best_score = score
 

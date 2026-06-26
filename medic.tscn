@@ -1,0 +1,60 @@
+[gd_scene load_steps=10 format=3 uid="uid://bbmedic01"]
+
+[ext_resource type="Script" path="res://medic.gd" id="1_medic"]
+[ext_resource type="AudioStream" path="res://hit.wav" id="2_hit"]
+
+[sub_resource type="CapsuleShape3D" id="Cap_shape"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="Cap_mesh"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="FastNoiseLite" id="FNL_medic"]
+frequency = 0.4
+
+[sub_resource type="NoiseTexture2D" id="Noise_medic"]
+noise = SubResource("FNL_medic")
+seamless = true
+
+[sub_resource type="StandardMaterial3D" id="Mat_medic"]
+albedo_color = Color(0.16, 0.62, 0.24, 1)
+albedo_texture = SubResource("Noise_medic")
+uv1_scale = Vector3(3, 3, 3)
+roughness = 0.7
+emission_enabled = true
+emission = Color(0.1, 0.8, 0.2, 1)
+emission_energy_multiplier = 1.0
+
+[sub_resource type="SphereMesh" id="Head_mesh"]
+radius = 0.28
+height = 0.56
+
+[sub_resource type="StandardMaterial3D" id="Mat_head"]
+albedo_color = Color(0.1, 0.12, 0.1, 1)
+metallic = 0.3
+roughness = 0.4
+
+[node name="Medic" type="CharacterBody3D"]
+script = ExtResource("1_medic")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("Cap_mesh")
+material_override = SubResource("Mat_medic")
+
+[node name="Head" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+mesh = SubResource("Head_mesh")
+material_override = SubResource("Mat_head")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("Cap_shape")
+
+[node name="HitSound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+stream = ExtResource("2_hit")
+unit_size = 6.0
+pitch_scale = 1.3

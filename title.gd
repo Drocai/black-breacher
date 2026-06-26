@@ -8,7 +8,13 @@ func _ready() -> void:
 	$VBox/Easy.pressed.connect(_start.bind(0))
 	$VBox/Normal.pressed.connect(_start.bind(1))
 	$VBox/Hard.pressed.connect(_start.bind(2))
-	$VBox/Best.text = "Best Score: %d    Missions Cleared: %d" % [Game.best_score, Game.missions_cleared]
+	var txt: String = "Best Score: %d    Missions Cleared: %d" % [Game.best_score, Game.missions_cleared]
+	if Game.top_scores.size() > 0:
+		var tops: PackedStringArray = []
+		for i in mini(3, Game.top_scores.size()):
+			tops.append("#%d %d" % [i + 1, int(Game.top_scores[i])])
+		txt += "\nTop Runs:   " + "   ".join(tops)
+	$VBox/Best.text = txt
 	$VBox/Normal.grab_focus()
 
 func _start(d: int) -> void:

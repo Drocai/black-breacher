@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3 uid="uid://bbcrate01"]
+
+[ext_resource type="Script" path="res://crate.gd" id="1_crate"]
+
+[sub_resource type="FastNoiseLite" id="FNL_crate"]
+frequency = 0.4
+
+[sub_resource type="NoiseTexture2D" id="Noise_crate"]
+noise = SubResource("FNL_crate")
+seamless = true
+
+[sub_resource type="StandardMaterial3D" id="Mat_crate"]
+albedo_color = Color(0.5, 0.36, 0.2, 1)
+albedo_texture = SubResource("Noise_crate")
+uv1_scale = Vector3(2, 2, 2)
+roughness = 0.8
+
+[sub_resource type="BoxShape3D" id="Box_crate"]
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="BoxMesh" id="Mesh_crate"]
+size = Vector3(1.2, 1.2, 1.2)
+
+[node name="Crate" type="StaticBody3D"]
+script = ExtResource("1_crate")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_crate")
+material_override = SubResource("Mat_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("Box_crate")

@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://wave_manager.gd" id="10_wave"]
 [ext_resource type="Script" path="res://camera_rig.gd" id="11_cam"]
 [ext_resource type="AudioStream" path="res://footstep.wav" id="12_step"]
+[ext_resource type="PackedScene" path="res://crate.tscn" id="13_crate"]
 
 [sub_resource type="FastNoiseLite" id="FNL_floor"]
 frequency = 0.03
@@ -223,23 +224,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6, -14)
 light_energy = 2.5
 omni_range = 14.0
 
-[node name="CrateA" type="CSGBox3D" parent="Room"]
+[node name="CrateA" parent="Room" instance=ExtResource("13_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.6, -9)
-use_collision = true
-size = Vector3(1.2, 1.2, 1.2)
-material = SubResource("Mat_crate")
 
-[node name="CrateB" type="CSGBox3D" parent="Room"]
+[node name="CrateB" parent="Room" instance=ExtResource("13_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.6, -12.5)
-use_collision = true
-size = Vector3(1.2, 1.2, 1.2)
-material = SubResource("Mat_crate")
 
-[node name="CrateC" type="CSGBox3D" parent="Room"]
+[node name="CrateC" parent="Room" instance=ExtResource("13_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.6, -14.5)
-use_collision = true
-size = Vector3(1.2, 1.2, 1.2)
-material = SubResource("Mat_crate")
 
 [node name="AlcoveBack" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -25)

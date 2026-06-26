@@ -189,6 +189,7 @@ func _physics_process(delta: float) -> void:
 	_update_locomotion_anim(direction != Vector3.ZERO, running, hspeed)
 	_tick_footsteps(delta, hspeed)
 	move_and_slide()
+	_shove_aside(hspeed)
 
 func _current_input_dir() -> Vector3:
 	var d := Vector2.ZERO
@@ -270,13 +271,36 @@ func _apply_melee_hit() -> void:
 		var to_enemy: Vector3 = enemy.global_position - global_position
 		to_enemy.y = 0.0
 		if to_enemy.length() <= _pending_hit_range:
-			enemy.take_hit(_pending_hit_damage)
+			# Finisher: a staggered, weakened enemy gets executed.
+			if enemy.has_method("is_staggered") and enemy.is_staggered() and ("health" in enemy) and enemy.health <= 4:
+				enemy.take_hit(999)
+				shake(0.18, 0.25)
+				Game.spawn_hitspark(enemy.global_position + Vector3(0.0, 1.0, 0.0))
+			else:
+				enemy.take_hit(_pending_hit_damage)
 			landed = true
+	# Breach crates / breakables in range.
+	for b in get_tree().get_nodes_in_group("breakable"):
+		if b is Node3D and b.has_method("take_hit"):
+			if global_position.distance_to(b.global_position) <= _pending_hit_range + 0.6:
+				b.take_hit(2)
+				landed = true
 	if landed:
 		if jab_sound:
 			jab_sound.play()
 		_hitstop()
 		shake(0.06, 0.12)
+
+# His bulk shoves smaller enemies aside when he barrels into them.
+func _shove_aside(hspeed: float) -> void:
+	if hspeed < 4.0:
+		return
+	for i in get_slide_collision_count():
+		var c := get_slide_collision(i)
+		var col := c.get_collider()
+		if col and col is Node3D and col.is_in_group("enemy") and col.has_method("stagger"):
+			var d: Vector3 = col.global_position - global_position
+			col.stagger(Vector3(d.x, 0.0, d.z).normalized())
 
 # --- Special launcher (E): big hit + knockback ---
 func _try_special() -> void:

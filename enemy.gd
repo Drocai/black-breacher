@@ -185,6 +185,9 @@ func stagger(dir: Vector3) -> void:
 	velocity = dir.normalized() * 7.0
 	velocity.y = 0.0
 
+func is_staggered() -> bool:
+	return _stagger_time > 0.0
+
 # --- Grabbed / thrown (player breaches bodies) ---
 func grab(_holder: Node) -> void:
 	if _down:

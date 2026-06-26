@@ -152,6 +152,8 @@ func _input(event: InputEvent) -> void:
 				_try_seismic_slam()
 			KEY_T:
 				_try_charge()
+			KEY_B:
+				_toggle_view()
 			KEY_R:
 				Game.full_reset()
 				get_tree().reload_current_scene()
@@ -449,6 +451,18 @@ func _cam_hero_angle(duration: float = 0.6) -> void:
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam and cam.has_method("hero_angle"):
 		cam.hero_angle(duration)
+
+# Toggle first-person / third-person view (B). Third-person is the default so
+# his scale reads; first-person is an optional mode.
+func _toggle_view() -> void:
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam != null and cam.has_method("set_first_person") and "first_person" in cam:
+		var fp: bool = not cam.first_person
+		cam.set_first_person(fp)
+		# Hide his own body in first-person so we don't render the inside of
+		# his head; the halligan rides a hand bone and hides with it.
+		if mesh != null:
+			mesh.visible = not fp
 
 # --- Halligan (signature gear): visible bar in his hand + a heavy sweep (X) ---
 func _attach_halligan() -> void:

@@ -474,7 +474,7 @@ J / Left-Click  Strike (combo)
 Right-Click  Kick       X  Halligan sweep
 E  Special       Q  Dodge       Z  SEISMIC SLAM       T  CHARGE
 Ctrl  Block / Parry     V  Grab / Throw     G  Grenade
-F  Breach door     R  Restart     H  Toggle help"
+F  Breach door     R  Restart     H  Toggle help     B  1st/3rd-person view"
 
 [node name="PauseMenu" type="CanvasLayer" parent="."]
 process_mode = 3

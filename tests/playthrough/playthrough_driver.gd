@@ -23,6 +23,7 @@ var _missions_start: int = 0
 var _kills_start: int = 0
 var _slam_tested: bool = false
 var _charge_tested: bool = false
+var _view_tested: bool = false
 const TIMEOUT := 300.0   # sim-seconds; generous so a loaded machine can't false-fail
 const ARENA_COUNT := 3   # keep in sync with Game.ARENA_SCENES.size()
 
@@ -95,6 +96,11 @@ func _physics_process(delta: float) -> void:
 				p._charge_dir = Vector3(0.0, 0.0, -1.0)
 			p._charge_sweep()
 			_charge_tested = true
+		# Exercise the first-person camera path once (toggle on, then back).
+		if not _view_tested and p != null and p.has_method("_toggle_view"):
+			p._toggle_view()
+			p._toggle_view()
+			_view_tested = true
 		# Waves in progress (or in a resupply intermission) — mow them down,
 		# sparing the boss for its own stage.
 		_kill_enemies(true)

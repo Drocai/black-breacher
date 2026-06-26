@@ -14,6 +14,10 @@ extends Camera3D
 @export var punch_amount: float = 0.32   # how far the hero punch-in pulls the camera in
 @export var hero_drop: float = 1.3       # how far the camera dips to look UP at him
 @export var hero_pitch_up: float = 7.0   # extra up-tilt (deg) during a hero beat
+@export var fp_head_height: float = 2.7  # first-person eye height on the scaled character
+@export var fp_forward: float = 0.35     # nudge the FP cam forward of the head
+
+var first_person: bool = false
 
 var _player: Node3D
 var _shake_t: float = 0.0
@@ -38,6 +42,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	var p := _get_player()
 	if p == null:
+		return
+
+	if first_person:
+		_update_first_person(p, delta)
 		return
 
 	var lead := Vector3.ZERO
@@ -71,6 +79,32 @@ func _physics_process(delta: float) -> void:
 		_shake_t -= delta
 		var f: float = _shake_t / _shake_dur
 		global_position += Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * _shake_amp * f
+
+func set_first_person(v: bool) -> void:
+	first_person = v
+
+# First-person view: ride the character's head, look where he faces. Shake +
+# FOV-kick still land (dampened) so impacts read; default stays third-person.
+func _update_first_person(p: Node3D, delta: float) -> void:
+	var yaw: float = 0.0
+	if "mesh" in p and p.mesh != null:
+		yaw = p.mesh.rotation.y
+	var fwd := Vector3(sin(yaw), 0.0, cos(yaw))
+	var head: Vector3 = p.global_position + Vector3(0.0, fp_head_height, 0.0) + fwd * fp_forward
+	var t: float = 1.0 - exp(-follow_lerp * 2.0 * delta)
+	global_position = global_position.lerp(head, t)
+	look_at(global_position + fwd, Vector3.UP)
+
+	if _fov_kick_t > 0.0:
+		_fov_kick_t -= delta
+		fov = _fov_base + _fov_kick_amp * clampf(_fov_kick_t / maxf(_fov_kick_dur, 0.001), 0.0, 1.0)
+	else:
+		fov = _fov_base
+
+	if _shake_t > 0.0:
+		_shake_t -= delta
+		var f: float = _shake_t / _shake_dur
+		global_position += Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * _shake_amp * f * 0.5
 
 func shake(amplitude: float = 0.12, duration: float = 0.3) -> void:
 	_shake_amp = amplitude

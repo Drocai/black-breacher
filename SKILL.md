@@ -283,6 +283,8 @@ Derrick is **new to 3D / game tooling** even though he's a high-literacy systems
 - **Footsteps:** `footstep.wav` (heavy thud) paced by speed → reinforces his weight.
 - **Size presence:** regular enemies spawn at 0.9× so the Breacher towers; boss 1.5×. Brutal knockback (enemy `knockback_force` 6).
 
+**Combat readability (June 2026):** melee enemies now **telegraph** — `_begin_attack` starts a 0.4s wind-up (red glow via per-instance duplicated `_mat`, anticipation pull-back, holds position), then `_land_attack` only deals damage if the player is still in range — so block/parry/dodge/step-out all work as reactions. Red **hit-flash** (emission pulse) on every hit. Per-enemy material is duplicated in `_ready` so flashes don't bleed across instances.
+
 **Halligan + patrols (June 2026):**
 - **Halligan** (`halligan.tscn`) is attached to the **RightHand bone** at runtime (`player._attach_halligan` via `BoneAttachment3D`). **Grip is tunable** in the Inspector: `halligan_offset`, `halligan_rotation_deg`, `halligan_scale` (the in-hand alignment is a first guess — adjust to taste). **X = heavy halligan sweep** (`_try_halligan`/`_apply_halligan_hit`): long reach (`halligan_range` 3.2), wide arc, knockback all, breaks crates, 1.4s cd.
 - **Patrols:** unaware guards with `patrol_distance > 0` pace along their facing and turn home at the limit, sweeping their vision cone (Guard1/Guard2 set to 1.5). Stealth now has moving sightlines.

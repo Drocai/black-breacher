@@ -40,6 +40,10 @@ extends CharacterBody3D
 @export var halligan_range: float = 3.2
 @export var halligan_damage: int = 5
 @export var halligan_cooldown: float = 1.4
+# Signature SEISMIC SLAM (Z) — a two-handed ground pound that sells his size.
+@export var seismic_range: float = 5.0
+@export var seismic_damage: int = 6
+@export var seismic_cooldown: float = 4.5
 @export_group("Halligan grip (tune in editor)")
 @export var halligan_offset: Vector3 = Vector3(0.05, 0.02, 0.0)
 @export var halligan_rotation_deg: Vector3 = Vector3(0.0, 90.0, 0.0)
@@ -85,6 +89,7 @@ var _step_timer: float = 0.0
 var sneaking: bool = false
 var _held_enemy: Node3D = null
 var _halligan_cd: float = 0.0
+var _seismic_cd: float = 0.0
 var armor: int = 0
 var grenades: int = 2
 
@@ -133,6 +138,8 @@ func _input(event: InputEvent) -> void:
 				_throw_grenade()
 			KEY_X:
 				_try_halligan()
+			KEY_Z:
+				_try_seismic_slam()
 			KEY_R:
 				Game.full_reset()
 				get_tree().reload_current_scene()
@@ -163,6 +170,8 @@ func _physics_process(delta: float) -> void:
 		_special_cd -= delta
 	if _halligan_cd > 0.0:
 		_halligan_cd -= delta
+	if _seismic_cd > 0.0:
+		_seismic_cd -= delta
 	if _dodge_cd > 0.0:
 		_dodge_cd -= delta
 	if _invuln > 0.0:
@@ -303,6 +312,8 @@ func _apply_melee_hit() -> void:
 				# Execution lands like a hammer — concussive thud + ground ring.
 				Game.spawn_sound_3d(enemy.global_position, "res://breach_impact.wav", -2.0)
 				Game.spawn_shockwave(enemy.global_position + Vector3(0.0, 0.05, 0.0), Color(1.0, 0.4, 0.3), 2.6)
+				_cam_fov_kick(6.0, 0.32)
+				_cam_hero_angle(0.5)
 			else:
 				enemy.take_hit(_pending_hit_damage)
 			landed = true
@@ -384,7 +395,12 @@ func _try_breach() -> void:
 func _finish_breach() -> void:
 	if is_instance_valid(_pending_breach) and _pending_breach.has_method("breach"):
 		_pending_breach.breach()
-		shake(0.12, 0.35)
+		# Breaching is a signature beat — kick the camera and read his size.
+		shake(0.35, 0.4)
+		_cam_fov_kick(7.0, 0.35)
+		_cam_hero_angle(0.6)
+		_hero_cam(0.8)
+		Game.slowmo(0.45, 0.18)
 	_pending_breach = null
 
 # --- Camera shake (forwarded to the follow-camera rig) ---
@@ -397,6 +413,16 @@ func _hero_cam(strength: float = 1.0) -> void:
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam and cam.has_method("punch_in"):
 		cam.punch_in(strength)
+
+func _cam_fov_kick(amount: float = 6.0, duration: float = 0.35) -> void:
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("fov_kick"):
+		cam.fov_kick(amount, duration)
+
+func _cam_hero_angle(duration: float = 0.6) -> void:
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("hero_angle"):
+		cam.hero_angle(duration)
 
 # --- Halligan (signature gear): visible bar in his hand + a heavy sweep (X) ---
 func _attach_halligan() -> void:
@@ -448,8 +474,44 @@ func _apply_halligan_hit() -> void:
 		Game.spawn_sound_3d(impact, "res://breach_impact.wav", -3.0)
 		Game.spawn_shockwave(impact + Vector3(0.0, 0.05, 0.0), Color(1.0, 0.75, 0.4), 2.2)
 		shake(0.2, 0.3)
+		_cam_fov_kick(5.0, 0.3)
 		_hero_cam(0.6)
 		_hitstop(0.08)
+
+# --- Signature: SEISMIC SLAM (Z) ---------------------------------
+# He rears up and drives both fists into the ground. A wide AoE that
+# damages, staggers, and hurls everything around him outward — wrapped
+# in slow-mo + a low-angle hero shot so his sheer mass lands.
+func _try_seismic_slam() -> void:
+	if _busy() or _seismic_cd > 0.0 or not is_on_floor():
+		return
+	_seismic_cd = seismic_cooldown
+	_play_action("Charged_Upward_Slash", 1.0)
+	get_tree().create_timer(0.32).timeout.connect(_apply_seismic_slam)
+
+func _apply_seismic_slam() -> void:
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if not (e is Node3D) or not e.has_method("take_hit"):
+			continue
+		var to: Vector3 = e.global_position - global_position
+		to.y = 0.0
+		if to.length() <= seismic_range:
+			e.take_hit(seismic_damage)
+			if e.has_method("stagger"):
+				e.stagger(Vector3(to.x, 0.0, to.z).normalized())
+	for b in get_tree().get_nodes_in_group("breakable"):
+		if b is Node3D and b.has_method("take_hit") and global_position.distance_to(b.global_position) <= seismic_range:
+			b.take_hit(5)
+	# Cinematic payload — the signature "he is ENORMOUS" beat.
+	var ground: Vector3 = global_position + Vector3(0.0, 0.05, 0.0)
+	Game.spawn_shockwave(ground, Color(1.0, 0.55, 0.2), seismic_range * 1.4)
+	Game.spawn_explosion(global_position)
+	Game.spawn_sound_3d(global_position, "res://breach_impact.wav", 3.0)
+	shake(0.5, 0.5)
+	_cam_fov_kick(9.0, 0.45)
+	_cam_hero_angle(0.7)
+	_hero_cam(1.0)
+	Game.slowmo(0.3, 0.3)
 
 # --- Damage / respawn ---
 func heal(amount: int) -> void:
@@ -588,9 +650,7 @@ func _update_hold() -> void:
 	_held_enemy.global_position = global_position + fwd * 1.4 + Vector3(0.0, 1.0, 0.0)
 
 func _hitstop(duration: float = 0.06) -> void:
-	Engine.time_scale = 0.05
-	await get_tree().create_timer(duration, true, false, true).timeout
-	Engine.time_scale = 1.0
+	Game.hitstop(duration)
 
 func take_damage(amount: int) -> void:
 	if health <= 0 or _invuln > 0.0:

@@ -12,16 +12,25 @@ extends Camera3D
 @export var look_ahead: float = 1.4
 @export var pitch_degrees: float = -28.0
 @export var punch_amount: float = 0.32   # how far the hero punch-in pulls the camera in
+@export var hero_drop: float = 1.3       # how far the camera dips to look UP at him
+@export var hero_pitch_up: float = 7.0   # extra up-tilt (deg) during a hero beat
 
 var _player: Node3D
 var _shake_t: float = 0.0
 var _shake_dur: float = 0.0
 var _shake_amp: float = 0.0
 var _punch: float = 0.0   # 1 -> 0, decays after a finisher/takedown
+var _fov_base: float = 75.0
+var _fov_kick_t: float = 0.0
+var _fov_kick_dur: float = 0.0
+var _fov_kick_amp: float = 0.0
+var _hero_t: float = 0.0   # low-angle "look up at his size" emphasis
+var _hero_dur: float = 0.0
 
 func _ready() -> void:
 	add_to_group("camera")
 	rotation = Vector3(deg_to_rad(pitch_degrees), 0.0, 0.0)
+	_fov_base = fov
 	var p := _get_player()
 	if p:
 		global_position = p.global_position + offset
@@ -36,11 +45,27 @@ func _physics_process(delta: float) -> void:
 		var flat := Vector3(p.velocity.x, 0.0, p.velocity.z)
 		lead = flat.limit_length(8.0) / 8.0 * look_ahead
 
+	# Low-angle "look up at him" emphasis during signature beats.
+	var hero := 0.0
+	if _hero_t > 0.0:
+		_hero_t -= delta
+		hero = clampf(_hero_t / maxf(_hero_dur, 0.001), 0.0, 1.0)
+
 	var off: Vector3 = offset * (1.0 - punch_amount * _punch)
+	off.y -= hero_drop * hero
 	var target: Vector3 = p.global_position + off + lead
 	var t: float = 1.0 - exp(-follow_lerp * delta)
 	global_position = global_position.lerp(target, t)
 	_punch = move_toward(_punch, 0.0, delta / 0.45)
+
+	rotation.x = deg_to_rad(pitch_degrees + hero_pitch_up * hero)
+
+	# FOV punch-kick (widens then settles) for high-impact moments.
+	if _fov_kick_t > 0.0:
+		_fov_kick_t -= delta
+		fov = _fov_base + _fov_kick_amp * clampf(_fov_kick_t / maxf(_fov_kick_dur, 0.001), 0.0, 1.0)
+	else:
+		fov = _fov_base
 
 	if _shake_t > 0.0:
 		_shake_t -= delta
@@ -56,6 +81,17 @@ func shake(amplitude: float = 0.12, duration: float = 0.3) -> void:
 func punch_in(strength: float = 1.0) -> void:
 	_punch = clampf(strength, 0.0, 1.0)
 	shake(0.18, 0.35)
+
+# Briefly widen FOV then settle — a visceral "whoomph" on big hits.
+func fov_kick(amount: float = 6.0, duration: float = 0.35) -> void:
+	_fov_kick_amp = amount
+	_fov_kick_dur = duration
+	_fov_kick_t = duration
+
+# Dip low and tilt up to read his full height on a signature beat.
+func hero_angle(duration: float = 0.6) -> void:
+	_hero_dur = duration
+	_hero_t = maxf(_hero_t, duration)
 
 func _get_player() -> Node3D:
 	if is_instance_valid(_player):

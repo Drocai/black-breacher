@@ -119,6 +119,28 @@ func show_toast(msg: String, dur: float = 2.5) -> void:
 func toast_active() -> bool:
 	return _toast_t > 0.0
 
+# --- Time dilation (hitstop / slow-mo) ----------------------------
+# Ref-counted by id so overlapping requests don't restore early: only the
+# most recent dilation owns the return to normal speed. Timers run on
+# real time (ignore_time_scale) so they fire even while the world is frozen.
+var _dilation_id: int = 0
+
+func _dilate(scale: float, duration: float) -> void:
+	_dilation_id += 1
+	var mine: int = _dilation_id
+	Engine.time_scale = scale
+	await get_tree().create_timer(duration, true, false, true).timeout
+	if mine == _dilation_id:
+		Engine.time_scale = 1.0
+
+# A hard, near-freeze micro-pause on a clean hit.
+func hitstop(duration: float = 0.06) -> void:
+	_dilate(0.05, duration)
+
+# A cinematic slow-motion beat for signature moves / big finishers.
+func slowmo(scale: float = 0.3, duration: float = 0.28) -> void:
+	_dilate(scale, duration)
+
 func combo_mult() -> int:
 	return clampi(combo, 1, 5)
 

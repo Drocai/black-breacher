@@ -11,7 +11,7 @@
 [ext_resource type="Script" path="res://camera_rig.gd" id="11_cam"]
 [ext_resource type="AudioStream" path="res://footstep.wav" id="12_step"]
 [ext_resource type="PackedScene" path="res://crate.tscn" id="13_crate"]
-[ext_resource type="AudioStream" path="res://ambient.wav" id="14_amb"]
+[ext_resource type="AudioStream" path="res://music_cellblock.wav" id="14_amb"]
 [ext_resource type="Script" path="res://music.gd" id="15_music"]
 [ext_resource type="Shader" path="res://vignette.gdshader" id="16_vig"]
 [ext_resource type="Script" path="res://pause_menu.gd" id="17_pause"]
@@ -358,7 +358,7 @@ text = "BLACK BREACHER — CELL BLOCK
 WASD / Arrows  Move      Shift  Run      C  Sneak
 J / Left-Click  Strike (combo)
 Right-Click  Kick       X  Halligan sweep
-E  Special       Q  Dodge
+E  Special       Q  Dodge       Z  SEISMIC SLAM
 Ctrl  Block / Parry     V  Grab / Throw     G  Grenade
 F  Breach door     R  Restart     H  Toggle help"
 

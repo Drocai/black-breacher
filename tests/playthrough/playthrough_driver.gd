@@ -21,6 +21,7 @@ extends Node
 var _t: float = 0.0
 var _missions_start: int = 0
 var _kills_start: int = 0
+var _slam_tested: bool = false
 const TIMEOUT := 180.0
 const ARENA_COUNT := 3   # keep in sync with Game.ARENA_SCENES.size()
 
@@ -83,6 +84,10 @@ func _physics_process(delta: float) -> void:
 		# Waves done, boss (or stragglers) remain — finish them.
 		_kill_enemies(false)
 	elif Game.wave >= 1:
+		# Exercise the signature Seismic Slam's full cinematic path once.
+		if not _slam_tested and p != null and p.has_method("_apply_seismic_slam"):
+			p._apply_seismic_slam()
+			_slam_tested = true
 		# Waves in progress (or in a resupply intermission) — mow them down,
 		# sparing the boss for its own stage.
 		_kill_enemies(true)

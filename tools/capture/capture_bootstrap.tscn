@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bbcapture0001"]
+
+[ext_resource type="Script" path="res://tools/capture/capture_bootstrap.gd" id="1_cap"]
+
+[node name="CaptureBootstrap" type="Node"]
+script = ExtResource("1_cap")

@@ -11,6 +11,7 @@ extends CanvasLayer
 @onready var prompt: Label = $BreachPrompt
 @onready var status: Label = $Status
 @onready var controls: Label = get_node_or_null("Controls")
+@onready var vignette: ColorRect = get_node_or_null("Vignette")
 
 var _help_t: float = 7.0   # auto-show the controls for a few seconds at start
 var _help_pinned: bool = false
@@ -30,6 +31,9 @@ func _process(delta: float) -> void:
 	if players.size() > 0:
 		var p: Node = players[0]
 		health_bar.value = p.health
+		if vignette and vignette.material:
+			var frac := float(p.health) / float(p.max_health)
+			vignette.material.set_shader_parameter("intensity", clampf((0.5 - frac) / 0.5, 0.0, 1.0))
 		var target = p.breach_target
 		prompt.visible = target != null and is_instance_valid(target) and not target.breached
 	else:

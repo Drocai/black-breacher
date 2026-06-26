@@ -15,6 +15,12 @@
 [ext_resource type="PackedScene" path="res://crate.tscn" id="13_crate"]
 [ext_resource type="AudioStream" path="res://ambient.wav" id="14_amb"]
 [ext_resource type="Script" path="res://music.gd" id="15_music"]
+[ext_resource type="Shader" path="res://vignette.gdshader" id="16_vig"]
+[ext_resource type="Script" path="res://pause_menu.gd" id="17_pause"]
+
+[sub_resource type="ShaderMaterial" id="Mat_vignette"]
+shader = ExtResource("16_vig")
+shader_parameter/intensity = 0.0
 
 [sub_resource type="FastNoiseLite" id="FNL_floor"]
 frequency = 0.03
@@ -335,6 +341,12 @@ shape = SubResource("Box_objzone")
 [node name="HUD" type="CanvasLayer" parent="."]
 script = ExtResource("6_hud")
 
+[node name="Vignette" type="ColorRect" parent="HUD"]
+material = SubResource("Mat_vignette")
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
 [node name="Health" type="ProgressBar" parent="HUD"]
 offset_left = 20.0
 offset_top = 20.0
@@ -381,5 +393,31 @@ Right-Click  Kick       X  Halligan sweep
 E  Special       Q  Dodge
 Ctrl  Block / Parry     V  Grab / Throw
 F  Breach door     R  Restart     H  Toggle help"
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+process_mode = 3
+script = ExtResource("17_pause")
+
+[node name="Panel" type="ColorRect" parent="PauseMenu"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Label" type="Label" parent="PauseMenu/Panel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -70.0
+offset_right = 150.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 28
+text = "PAUSED
+
+Esc — Resume
+R — Restart"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [editable path="Player/breacher"]

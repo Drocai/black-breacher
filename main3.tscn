@@ -22,6 +22,9 @@
 [ext_resource type="PackedScene" path="res://boss.tscn" id="23_boss"]
 [ext_resource type="PackedScene" path="res://boss_healthbar.tscn" id="24_bosshp"]
 [ext_resource type="Script" path="res://nav_baker.gd" id="25_nav"]
+[ext_resource type="Material" path="res://materials/concrete_floor.tres" id="30_mfloor"]
+[ext_resource type="Material" path="res://materials/concrete_wall.tres" id="31_mwall"]
+[ext_resource type="Material" path="res://materials/steel.tres" id="32_msteel"]
 
 [sub_resource type="ShaderMaterial" id="Mat_vignette"]
 shader = ExtResource("16_vig")
@@ -112,7 +115,7 @@ size = Vector3(2.4, 2.4, 2.4)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
 use_collision = true
 size = Vector3(60, 0.5, 60)
-material = SubResource("Mat_floor3")
+material = ExtResource("30_mfloor")
 
 [node name="Player" type="CharacterBody3D" parent="."]
 script = ExtResource("1_0xm2m")
@@ -176,36 +179,36 @@ patrol_distance = 2.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.65, 2, -5)
 use_collision = true
 size = Vector3(6.7, 4, 0.3)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="FrontR" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 2, -5)
 use_collision = true
 size = Vector3(6.7, 4, 0.3)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="WallL" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, -18.5)
 use_collision = true
 size = Vector3(0.3, 4, 27)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="WallR" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2, -18.5)
 use_collision = true
 size = Vector3(0.3, 4, 27)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="BackWall" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -32)
 use_collision = true
 size = Vector3(16.3, 4, 0.3)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="Ceiling" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -18.5)
 size = Vector3(16.3, 0.3, 27.3)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="Light1" type="OmniLight3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 3.6, -11)
@@ -228,29 +231,29 @@ omni_range = 12.0
 [node name="Fixture1" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 3.82, -11)
 size = Vector3(0.7, 0.14, 0.7)
-material = SubResource("Mat_metal")
+material = ExtResource("32_msteel")
 
 [node name="Fixture2" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 3.82, -18)
 size = Vector3(0.7, 0.14, 0.7)
-material = SubResource("Mat_metal")
+material = ExtResource("32_msteel")
 
 [node name="Fixture3" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 3.82, -25)
 size = Vector3(0.7, 0.14, 0.7)
-material = SubResource("Mat_metal")
+material = ExtResource("32_msteel")
 
 [node name="PipeL" type="CSGCylinder3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -7.7, 3.45, -18.5)
 radius = 0.12
 height = 26.0
-material = SubResource("Mat_metal")
+material = ExtResource("32_msteel")
 
 [node name="PipeR" type="CSGCylinder3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 7.7, 3.45, -18.5)
 radius = 0.12
 height = 26.0
-material = SubResource("Mat_metal")
+material = ExtResource("32_msteel")
 
 [node name="ContainerA" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.1, -11)
@@ -313,13 +316,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, -28)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.65, 2, -27)
 use_collision = true
 size = Vector3(6.7, 4, 0.3)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="GateR" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 2, -27)
 use_collision = true
 size = Vector3(6.7, 4, 0.3)
-material = SubResource("Mat_wall3")
+material = ExtResource("31_mwall")
 
 [node name="Objective" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -30)

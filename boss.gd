@@ -40,6 +40,13 @@ extends CharacterBody3D
 @export var summon_count: int = 2
 @export var max_summons: int = 2          # how many summon waves total
 
+# ERUPTION (phase 2+): a telegraphed AoE that marks the player's spot, then
+# erupts after a delay — forces a dodge, unlike the fixed-radius proximity slam.
+@export var eruption_cooldown: float = 5.5
+@export var eruption_delay: float = 0.75
+@export var eruption_radius: float = 2.8
+@export var eruption_damage: int = 16
+
 # CHARGE (phase 3)
 @export var charge_telegraph: float = 0.5
 @export var charge_speed: float = 11.0
@@ -58,6 +65,7 @@ var _state_timer: float = 0.0
 # Cooldown clocks
 var _slam_cd: float = 0.0
 var _volley_cd: float = 0.0
+var _eruption_cd: float = 0.0
 var _charge_cd: float = 0.0
 var _summons_done: int = 0
 
@@ -92,6 +100,8 @@ func _physics_process(delta: float) -> void:
 		_slam_cd -= delta
 	if _volley_cd > 0.0:
 		_volley_cd -= delta
+	if _eruption_cd > 0.0:
+		_eruption_cd -= delta
 	if _charge_cd > 0.0:
 		_charge_cd -= delta
 	if _flinch_time > 0.0:
@@ -183,6 +193,11 @@ func _try_start_attack(dist: float) -> bool:
 			_summons_done += 1
 		return true
 
+	# PHASE 2+: ground eruption — a dodge-the-marked-spot AoE at mid range.
+	if phase >= 2 and _eruption_cd <= 0.0 and dist > slam_radius and dist <= detect_range:
+		_do_eruption()
+		return true
+
 	# All phases: slam when close.
 	if _slam_cd <= 0.0 and dist <= slam_radius:
 		_begin_telegraph_slam()
@@ -270,6 +285,33 @@ func _do_summon() -> void:
 		if add is Node3D:
 			add.global_position = global_position + off + Vector3(0.0, 0.2, 0.0)
 		Game.spawn_hitspark(global_position + off + Vector3(0.0, 0.6, 0.0))
+
+# Mark the player's current spot, then erupt there after a delay — the player
+# must read the warning ring and step off it.
+func _do_eruption() -> void:
+	_eruption_cd = eruption_cooldown
+	var player := _get_player()
+	if not is_instance_valid(player):
+		return
+	var target: Vector3 = player.global_position
+	target.y = 0.05
+	# Warning ring at the marked spot.
+	Game.spawn_shockwave(target, Color(1.0, 0.3, 0.1), eruption_radius * 1.3)
+	Game.spawn_hitspark(target + Vector3(0.0, 0.2, 0.0))
+	var t := create_tween()
+	t.tween_interval(eruption_delay)
+	t.tween_callback(_erupt_at.bind(target))
+
+func _erupt_at(pos: Vector3) -> void:
+	if _state == State.DEAD:
+		return
+	Game.spawn_explosion(pos)
+	var player := _get_player()
+	if is_instance_valid(player) and player.has_method("take_damage"):
+		var d: Vector3 = player.global_position - pos
+		d.y = 0.0
+		if d.length() <= eruption_radius:
+			player.take_damage(eruption_damage)
 
 func _begin_telegraph_charge() -> void:
 	_state = State.TELEGRAPH_CHARGE

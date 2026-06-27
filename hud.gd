@@ -16,6 +16,7 @@ extends CanvasLayer
 var _help_t: float = 7.0   # auto-show the controls for a few seconds at start
 var _help_pinned: bool = false
 var _dmg_overlay: ColorRect   # red full-screen flash when the player is hit
+var _dir_indicator: ColorRect # red wedge pointing toward the threat that hit you
 
 func _ready() -> void:
 	# Build the red damage-flash overlay at runtime so all arenas get it
@@ -29,6 +30,16 @@ func _ready() -> void:
 	add_child(_dmg_overlay)
 	move_child(_dmg_overlay, 1)
 
+	# Directional damage indicator: a red wedge that points from screen-center
+	# toward wherever the hit came from (relative to where the camera faces).
+	_dir_indicator = ColorRect.new()
+	_dir_indicator.color = Color(1.0, 0.45, 0.15, 0.0)   # hot orange-red, distinct from the red wash
+	_dir_indicator.size = Vector2(18.0, 90.0)
+	_dir_indicator.pivot_offset = _dir_indicator.size * 0.5
+	_dir_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dir_indicator.visible = false
+	add_child(_dir_indicator)
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_H:
 		_help_pinned = not _help_pinned
@@ -41,7 +52,28 @@ func _process(delta: float) -> void:
 		controls.visible = _help_pinned or _help_t > 0.0
 
 	if _dmg_overlay:
-		_dmg_overlay.color.a = clampf(Game.hit_flash, 0.0, 1.0) * 0.45
+		_dmg_overlay.color.a = clampf(Game.hit_flash, 0.0, 1.0) * 0.32   # a flash, not a wash
+
+	# Point the directional damage wedge toward the threat (camera-relative).
+	if _dir_indicator:
+		var cam := get_tree().get_first_node_in_group("camera")
+		if Game.hit_flash > 0.12 and cam is Camera3D:
+			var b: Basis = (cam as Camera3D).global_transform.basis
+			var fwd := Vector3(-b.z.x, 0.0, -b.z.z)
+			var right := Vector3(b.x.x, 0.0, b.x.z)
+			if fwd.length() > 0.01 and right.length() > 0.01:
+				fwd = fwd.normalized()
+				right = right.normalized()
+				var ang: float = atan2(Game.hit_dir.dot(right), Game.hit_dir.dot(fwd))
+				var screen: Vector2 = get_viewport().get_visible_rect().size
+				var center: Vector2 = screen * 0.5
+				var radius: float = minf(screen.x, screen.y) * 0.4
+				_dir_indicator.position = center + Vector2(sin(ang), -cos(ang)) * radius - _dir_indicator.size * 0.5
+				_dir_indicator.rotation = ang
+				_dir_indicator.color.a = clampf(Game.hit_flash, 0.0, 1.0)
+				_dir_indicator.visible = true
+		else:
+			_dir_indicator.visible = false
 
 	var players := get_tree().get_nodes_in_group("player")
 	if players.size() > 0:

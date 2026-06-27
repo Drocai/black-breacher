@@ -39,6 +39,9 @@ var _toast_t: float = 0.0
 
 # Red damage-overlay intensity 0..1 (HUD reads this to flash when the player is hit).
 var hit_flash: float = 0.0
+# World-space horizontal direction to the threat that last hit the player
+# (HUD reads this to point a directional damage indicator).
+var hit_dir: Vector3 = Vector3(0.0, 0.0, -1.0)
 
 # persistent
 var best_score: int = 0

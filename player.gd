@@ -775,6 +775,20 @@ func take_damage(amount: int) -> void:
 	# Hit reaction: red screen flash + a camera kick scaled to how hard it
 	# landed, plus a brief hitstop on heavy blows so getting struck reads.
 	var sev: float = clampf(float(amount) / float(maxi(max_health, 1)) * 4.0, 0.25, 1.0)
+	# Record which way the threat is, so the HUD can point a damage indicator.
+	var nearest: Node3D = null
+	var best := 1.0e9
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e is Node3D:
+			var dd := global_position.distance_to(e.global_position)
+			if dd < best:
+				best = dd
+				nearest = e
+	if nearest != null:
+		var hd: Vector3 = nearest.global_position - global_position
+		hd.y = 0.0
+		if hd.length() > 0.01:
+			Game.hit_dir = hd.normalized()
 	Game.player_hit(sev)
 	shake(0.1 + 0.35 * sev, 0.25)
 	if sev >= 0.6:

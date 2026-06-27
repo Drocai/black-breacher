@@ -472,10 +472,9 @@ func _toggle_view() -> void:
 	if cam != null and cam.has_method("set_first_person") and "first_person" in cam:
 		var fp: bool = not cam.first_person
 		cam.set_first_person(fp)
-		# Hide his own body in first-person so we don't render the inside of
-		# his head; the halligan rides a hand bone and hides with it.
-		if mesh != null:
-			mesh.visible = not fp
+		# Body stays visible in FP: the cam looks DOWN from his eyeline, so the
+		# head sits above frame while his massive torso/arms (and the halligan
+		# on his hand) show below — a true first-person body view.
 
 # --- Halligan (signature gear): visible bar in his hand + a heavy sweep (X) ---
 func _attach_halligan() -> void:

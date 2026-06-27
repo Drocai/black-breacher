@@ -39,8 +39,7 @@ func _physics_process(delta: float) -> void:
 				p.global_position = Vector3(0.0, 1.0, -10.0)
 				if "health" in p:
 					p.health = p.max_health
-			# Pose the player and a few enemies for a clean combat-readability
-			# frame (no forced FX) — audits whether threats/scale/distance read.
+			# Clean combat-readability frame (third-person default).
 			var enemies := get_tree().get_nodes_in_group("enemy")
 			if p != null:
 				for i in enemies.size():

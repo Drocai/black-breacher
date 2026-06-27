@@ -14,10 +14,13 @@ extends Camera3D
 @export var punch_amount: float = 0.32   # how far the hero punch-in pulls the camera in
 @export var hero_drop: float = 1.3       # how far the camera dips to look UP at him
 @export var hero_pitch_up: float = 7.0   # extra up-tilt (deg) during a hero beat
-@export var fp_head_height: float = 2.7  # first-person eye height on the scaled character
-@export var fp_forward: float = 0.35     # nudge the FP cam forward of the head
+@export var fp_head_height: float = 2.9   # first-person eye height — high up = you feel huge
+@export var fp_forward: float = 0.35      # nudge the FP cam forward of the head
+@export var fp_look_down: float = 0.32    # tilt the gaze DOWN at the small enemies below
+@export var fp_bob_amount: float = 0.14   # heavy weight-bob travel while moving
 
 var first_person: bool = false
+var _fp_bob_t: float = 0.0
 
 var _player: Node3D
 var _shake_t: float = 0.0
@@ -90,10 +93,23 @@ func _update_first_person(p: Node3D, delta: float) -> void:
 	if "mesh" in p and p.mesh != null:
 		yaw = p.mesh.rotation.y
 	var fwd := Vector3(sin(yaw), 0.0, cos(yaw))
-	var head: Vector3 = p.global_position + Vector3(0.0, fp_head_height, 0.0) + fwd * fp_forward
+
+	# Heavy weight-bob: a slow, deep vertical sway + roll while he lumbers, so
+	# his mass reads in first-person even without a body in view.
+	var hspeed: float = 0.0
+	if "velocity" in p:
+		hspeed = Vector2(p.velocity.x, p.velocity.z).length()
+	var moving: float = clampf(hspeed / 6.0, 0.0, 1.0)
+	_fp_bob_t += delta * (5.0 + hspeed * 0.5)
+	var bob_y: float = sin(_fp_bob_t) * fp_bob_amount * moving
+	var roll: float = sin(_fp_bob_t * 0.5) * 0.025 * moving
+
+	var head: Vector3 = p.global_position + Vector3(0.0, fp_head_height + bob_y, 0.0) + fwd * fp_forward
 	var t: float = 1.0 - exp(-follow_lerp * 2.0 * delta)
 	global_position = global_position.lerp(head, t)
-	look_at(global_position + fwd, Vector3.UP)
+	# Look forward AND down — enemies sit far below his eyeline, selling height.
+	look_at(global_position + fwd + Vector3(0.0, -fp_look_down, 0.0), Vector3.UP)
+	rotation.z = roll
 
 	if _fov_kick_t > 0.0:
 		_fov_kick_t -= delta

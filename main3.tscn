@@ -307,6 +307,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.88, 2.4, -24)
 size = Vector3(0.06, 1.1, 1.8)
 material = SubResource("Mat_led_red")
 
+[node name="CenterLine" type="CSGBox3D" parent="Room"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -18.5)
+size = Vector3(0.18, 0.04, 26)
+material = SubResource("Mat_led_green")
+
 [node name="ContainerA" type="CSGBox3D" parent="Room"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.1, -11)
 use_collision = true

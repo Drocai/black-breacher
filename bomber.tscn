@@ -1,47 +1,22 @@
-[gd_scene load_steps=6 format=3 uid="uid://bbbomber01"]
+[gd_scene load_steps=4 format=3 uid="uid://bbbomber01"]
 
 [ext_resource type="Script" path="res://bomber.gd" id="1_bomber"]
+[ext_resource type="PackedScene" path="res://characters/operator_swat_run.glb" id="2_swat"]
 
-[sub_resource type="SphereShape3D" id="Sphere_shape"]
-radius = 0.5
-
-[sub_resource type="SphereMesh" id="Sphere_mesh"]
-radius = 0.5
-height = 1.0
-
-[sub_resource type="StandardMaterial3D" id="Mat_bomber"]
-albedo_color = Color(0.85, 0.22, 0.1, 1)
-metallic = 0.2
-roughness = 0.5
-emission_enabled = true
-emission = Color(1, 0.35, 0.1, 1)
-emission_energy_multiplier = 2.0
-
-[sub_resource type="StandardMaterial3D" id="Mat_eye"]
-albedo_color = Color(0.6, 0.2, 0.05, 1)
-emission_enabled = true
-emission = Color(1, 0.45, 0.1, 1)
-emission_energy_multiplier = 9.0
-
-[sub_resource type="BoxMesh" id="Box_eye"]
-size = Vector3(0.24, 0.15, 0.09)
+[sub_resource type="CapsuleShape3D" id="Cap_shape"]
+radius = 0.4
+height = 1.8
 
 [node name="Bomber" type="CharacterBody3D"]
 script = ExtResource("1_bomber")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-mesh = SubResource("Sphere_mesh")
-material_override = SubResource("Mat_bomber")
+[node name="Mesh" type="Node3D" parent="."]
 
-[node name="Eye" type="MeshInstance3D" parent="Mesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.43)
-mesh = SubResource("Box_eye")
-material_override = SubResource("Mat_eye")
+[node name="Operator" parent="Mesh" instance=ExtResource("2_swat")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-shape = SubResource("Sphere_shape")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("Cap_shape")
 
 [node name="NavAgent" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.5

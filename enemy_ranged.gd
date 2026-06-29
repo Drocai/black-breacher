@@ -20,14 +20,21 @@ var _down: bool = false
 var _shoot_cd: float = 0.0
 var _stun_time: float = 0.0
 var _player: Node3D
+var _vis := CharacterVisuals.new()
 
-@onready var mesh: MeshInstance3D = $Mesh
+const WALK_GLB := preload("res://characters/operator_merc_walk.glb")
+
+@export var model_yaw_offset_deg: float = 180.0
+
+@onready var mesh: Node3D = $Mesh
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
+	_vis.setup(mesh, WALK_GLB, model_yaw_offset_deg, Color(1, 1, 1, 1))
 
 func _physics_process(delta: float) -> void:
+	_vis.drive(velocity, move_speed, delta, _down)
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 	if _down:
@@ -115,11 +122,13 @@ func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
+	_vis.pulse(self, Color(1.0, 0.15, 0.1), 3.0, 0.02, 0.16)
 
 func _die() -> void:
 	_down = true
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
+	_vis.pause()
 	var t := create_tween()
 	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.4).set_ease(Tween.EASE_IN)
 	t.tween_interval(0.8)

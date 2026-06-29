@@ -23,17 +23,27 @@ var _fuse: float = 0.0
 var _fusing: bool = false
 var _stagger_time: float = 0.0
 var _player: Node3D
+var _vis := CharacterVisuals.new()
+var _lit: bool = false
 
-@onready var mesh: MeshInstance3D = $Mesh
+const WALK_GLB := preload("res://characters/operator_swat_walk.glb")
+
+@export var model_yaw_offset_deg: float = 180.0
+
+@onready var mesh: Node3D = $Mesh
 @onready var _agent: NavigationAgent3D = get_node_or_null("NavAgent")
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
+	# Faint warm cast marks the rusher as the explosive threat.
+	_vis.setup(mesh, WALK_GLB, model_yaw_offset_deg, Color(1.18, 0.82, 0.74))
 
 func _physics_process(delta: float) -> void:
 	if _exploded:
 		return
+
+	_vis.drive(velocity, move_speed, delta, false)
 
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -103,6 +113,7 @@ func _begin_fuse() -> void:
 		return
 	_fusing = true
 	_fuse = fuse_time
+	_vis.set_glow(true, Color(1.0, 0.3, 0.05))   # hot telegraph: about to blow
 
 func _explode() -> void:
 	if _exploded:
@@ -155,3 +166,4 @@ func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.2, 0.8, 1.2), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
+	_vis.pulse(self, Color(1.0, 0.2, 0.1), 3.0, 0.02, 0.16)

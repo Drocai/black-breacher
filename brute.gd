@@ -31,24 +31,26 @@ var _stagger_time: float = 0.0
 var _player: Node3D
 var _windup: float = 0.0
 var _windup_target: Node3D
-var _mat: StandardMaterial3D
+var _vis := CharacterVisuals.new()
 
 const PICKUP_SCENE := preload("res://pickup.tscn")
+const WALK_GLB := preload("res://characters/operator_breacher_walk.glb")
 
-@onready var mesh: MeshInstance3D = $Mesh
+# Breacher GLB faces -Z; spin 180 so it advances on the player face-first.
+@export var model_yaw_offset_deg: float = 180.0
+
+@onready var mesh: Node3D = $Mesh
 @onready var hit_sound: AudioStreamPlayer3D = get_node_or_null("HitSound")
 @onready var _agent: NavigationAgent3D = get_node_or_null("NavAgent")
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
-	# Per-instance material so hit-flash / attack-glow don't affect other brutes.
-	if mesh.material_override is StandardMaterial3D:
-		_mat = mesh.material_override.duplicate()
-		_mat.albedo_color = _mat.albedo_color * tint
-		mesh.material_override = _mat
+	_vis.setup(mesh, WALK_GLB, model_yaw_offset_deg, tint)
 
 func _physics_process(delta: float) -> void:
+	_vis.drive(velocity, move_speed, delta, _down)
+
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -143,14 +145,7 @@ func _land_attack() -> void:
 			p.take_damage(attack_damage)
 
 func _set_glow(on: bool) -> void:
-	if _mat == null:
-		return
-	_mat.emission_enabled = on
-	if on:
-		_mat.emission = Color(1.0, 0.2, 0.05)
-		_mat.emission_energy_multiplier = 2.5
-	else:
-		_mat.emission_energy_multiplier = 0.0
+	_vis.set_glow(on, Color(1.0, 0.2, 0.05))
 
 # --- Armor mechanic -----------------------------------------
 # Light jabs (damage < armor_threshold) glance off: only ~30% lands
@@ -210,21 +205,11 @@ func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.1, 0.9, 1.1), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
-	if _mat:
-		_mat.emission_enabled = true
-		_mat.emission = Color(1.0, 0.15, 0.1)
-		var t2 := create_tween()
-		t2.tween_property(_mat, "emission_energy_multiplier", 3.5, 0.02)
-		t2.tween_property(_mat, "emission_energy_multiplier", 0.0, 0.16)
+	_vis.pulse(self, Color(1.0, 0.15, 0.1), 3.5, 0.02, 0.16)
 
 func _clink() -> void:
 	# A short, cold metallic flash — the hit skids off the armor.
-	if _mat:
-		_mat.emission_enabled = true
-		_mat.emission = Color(0.7, 0.8, 1.0)
-		var t := create_tween()
-		t.tween_property(_mat, "emission_energy_multiplier", 2.0, 0.02)
-		t.tween_property(_mat, "emission_energy_multiplier", 0.0, 0.1)
+	_vis.pulse(self, Color(0.7, 0.8, 1.0), 2.0, 0.02, 0.1)
 
 func _knockback_anim() -> void:
 	var t := create_tween()
@@ -242,6 +227,7 @@ func _die() -> void:
 	_down = true
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
+	_vis.pause()
 	_maybe_drop_pickup()
 	var t := create_tween()
 	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)

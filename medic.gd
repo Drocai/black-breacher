@@ -25,22 +25,25 @@ var _down: bool = false
 var _heal_cd: float = 0.0
 var _stagger_time: float = 0.0
 var _player: Node3D
-var _mat: StandardMaterial3D
+var _vis := CharacterVisuals.new()
 
-@onready var mesh: MeshInstance3D = $Mesh
+const WALK_GLB := preload("res://characters/operator_merc_walk.glb")
+
+@export var model_yaw_offset_deg: float = 180.0
+
+@onready var mesh: Node3D = $Mesh
 @onready var hit_sound: AudioStreamPlayer3D = get_node_or_null("HitSound")
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
 	_heal_cd = heal_cooldown
-	# Per-instance material so hit-flash / heal-glow don't affect other enemies.
-	if mesh.material_override is StandardMaterial3D:
-		_mat = mesh.material_override.duplicate()
-		_mat.albedo_color = _mat.albedo_color * tint
-		mesh.material_override = _mat
+	# Faint cool/green cast identifies the support operator at a glance.
+	var t: Color = tint if tint != Color(1, 1, 1, 1) else Color(0.84, 1.08, 0.92)
+	_vis.setup(mesh, WALK_GLB, model_yaw_offset_deg, t)
 
 func _physics_process(delta: float) -> void:
+	_vis.drive(velocity, move_speed, delta, _down)
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -123,6 +126,7 @@ func _heal_pulse() -> void:
 	if _down:
 		return
 	_pulse_anim(self, mesh)
+	_vis.pulse(self, Color(0.15, 1.0, 0.25), 3.0, 0.05, 0.3)
 	Game.spawn_hitspark(global_position + Vector3(0.0, 1.6, 0.0))
 	for e in get_tree().get_nodes_in_group("enemy"):
 		if e == self or not (e is Node3D):
@@ -182,12 +186,7 @@ func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
-	if _mat:
-		_mat.emission_enabled = true
-		_mat.emission = Color(0.15, 1.0, 0.2)
-		var t2 := create_tween()
-		t2.tween_property(_mat, "emission_energy_multiplier", 3.5, 0.02)
-		t2.tween_property(_mat, "emission_energy_multiplier", 1.0, 0.16)
+	_vis.pulse(self, Color(0.2, 1.0, 0.25), 3.5, 0.02, 0.16)
 
 func _knockback_anim() -> void:
 	var t := create_tween()
@@ -198,6 +197,7 @@ func _die() -> void:
 	_down = true
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
+	_vis.pause()
 	var t := create_tween()
 	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	t.tween_interval(0.8)

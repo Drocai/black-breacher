@@ -9,7 +9,7 @@ radius = 0.7
 height = 3.0
 
 [node name="Boss" type="CharacterBody3D"]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+transform = Transform3D(1.06, 0, 0, 0, 1.06, 0, 0, 0, 1.06, 0, 0, 0)
 script = ExtResource("1_boss")
 
 [node name="Mesh" type="Node3D" parent="."]

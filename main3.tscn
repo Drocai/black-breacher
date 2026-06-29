@@ -143,7 +143,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0397034, 0)
 shape = SubResource("CapsuleShape3D_player")
 
 [node name="breacher" parent="Player" instance=ExtResource("1_ig7tw")]
-transform = Transform3D(1.55, 0, 0, 0, 1.55, 0, 0, 0, 1.55, 0, 0, 0)
+transform = Transform3D(1.04, 0, 0, 0, 1.04, 0, 0, 0, 1.04, 0, 0, 0)
 
 [node name="JabSound" type="AudioStreamPlayer" parent="Player"]
 stream = ExtResource("5_hit")

@@ -1,31 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://bbsniper01"]
+[gd_scene load_steps=6 format=3 uid="uid://bbsniper01"]
 
 [ext_resource type="Script" path="res://sniper.gd" id="1_sniper"]
+[ext_resource type="PackedScene" path="res://characters/operator_swat_run.glb" id="2_swat"]
 
 [sub_resource type="CylinderShape3D" id="Cyl_shape"]
-radius = 0.55
-height = 1.1
-
-[sub_resource type="CylinderMesh" id="Base_mesh"]
-top_radius = 0.35
-bottom_radius = 0.55
-height = 0.6
-
-[sub_resource type="StandardMaterial3D" id="Mat_base"]
-albedo_color = Color(0.09, 0.1, 0.12, 1)
-metallic = 0.6
-roughness = 0.5
-
-[sub_resource type="BoxMesh" id="Head_mesh"]
-size = Vector3(0.4, 0.35, 1.0)
-
-[sub_resource type="StandardMaterial3D" id="Mat_head"]
-albedo_color = Color(0.14, 0.15, 0.2, 1)
-metallic = 0.45
-roughness = 0.3
-
-[sub_resource type="BoxMesh" id="Box_scope"]
-size = Vector3(0.16, 0.12, 0.22)
+radius = 0.5
+height = 1.8
 
 [sub_resource type="BoxMesh" id="Beam_mesh"]
 size = Vector3(1.0, 1.0, 1.0)
@@ -40,20 +20,12 @@ shading_mode = 0
 [node name="Sniper" type="StaticBody3D"]
 script = ExtResource("1_sniper")
 
-[node name="Base" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
-mesh = SubResource("Base_mesh")
-material_override = SubResource("Mat_base")
+[node name="Mesh" type="Node3D" parent="."]
 
-[node name="Head" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
-mesh = SubResource("Head_mesh")
-material_override = SubResource("Mat_head")
+[node name="Operator" parent="Mesh" instance=ExtResource("2_swat")]
 
-[node name="Scope" type="MeshInstance3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0.42)
-mesh = SubResource("Box_scope")
-material_override = SubResource("Mat_beam")
+[node name="Muzzle" type="Marker3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0.35)
 
 [node name="Beam" type="MeshInstance3D" parent="."]
 visible = false
@@ -61,5 +33,5 @@ mesh = SubResource("Beam_mesh")
 material_override = SubResource("Mat_beam")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("Cyl_shape")

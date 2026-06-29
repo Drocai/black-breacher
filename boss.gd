@@ -75,23 +75,28 @@ var _flinch_time: float = 0.0
 var _player: Node3D
 var _charge_dir: Vector3 = Vector3.ZERO
 var _charge_hit: bool = false
-var _mat: StandardMaterial3D
+var _vis := CharacterVisuals.new()
 
-@onready var mesh: MeshInstance3D = $Mesh
+const WALK_GLB := preload("res://characters/operator_breacher_walk.glb")
+
+@export var model_yaw_offset_deg: float = 180.0
+
+@onready var mesh: Node3D = $Mesh
 @onready var hit_sound: AudioStreamPlayer3D = get_node_or_null("HitSound")
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
 	add_to_group("boss")
-	# Per-instance material so glow / flash stays on the boss only.
-	if mesh.material_override is StandardMaterial3D:
-		_mat = mesh.material_override.duplicate()
-		mesh.material_override = _mat
+	# Faint cold cast sets THE WARDEN apart from a rank-and-file breacher.
+	_vis.setup(mesh, WALK_GLB, model_yaw_offset_deg, Color(0.78, 0.76, 0.86))
+	_set_glow(false)   # persistent dim menace-glow from the start
 
 func _physics_process(delta: float) -> void:
 	if _state == State.DEAD:
 		return
+
+	_vis.drive(velocity, _cur_speed(), delta, false)
 
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -212,10 +217,10 @@ func _begin_telegraph_slam() -> void:
 	_set_glow(true)
 	velocity.x = 0.0
 	velocity.z = 0.0
-	# Rear back, then the actual slam happens in _do_slam.
+	# Leap/rear up (model feet baseline is 0), then slam down in _do_slam.
 	var t := create_tween()
-	t.tween_property(mesh, "position:y", 1.6, _state_timer * 0.7)
-	t.tween_property(mesh, "position:y", 1.35, _state_timer * 0.3)
+	t.tween_property(mesh, "position:y", 0.7, _state_timer * 0.7)
+	t.tween_property(mesh, "position:y", 0.5, _state_timer * 0.3)
 
 func _tick_telegraph_slam(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, _cur_speed())
@@ -227,10 +232,10 @@ func _tick_telegraph_slam(delta: float) -> void:
 func _do_slam() -> void:
 	_set_glow(false)
 	_state = State.CHASE
-	# Slam mesh down hard.
+	# Slam down hard to the ground, then a small landing bob.
 	var t := create_tween()
-	t.tween_property(mesh, "position:y", 1.0, 0.06)
-	t.tween_property(mesh, "position:y", 1.35, 0.18)
+	t.tween_property(mesh, "position:y", 0.0, 0.06)
+	t.tween_property(mesh, "position:y", 0.08, 0.18)
 
 	var feet := global_position + Vector3(0.0, 0.2, 0.0)
 	Game.spawn_explosion(feet)
@@ -365,25 +370,22 @@ func _tick_charging(delta: float) -> void:
 
 # --- Visuals -------------------------------------------------------
 
+# The boss keeps a persistent dim menace-glow; attacks flare it bright red.
 func _set_glow(on: bool) -> void:
-	if _mat == null:
-		return
-	_mat.emission_enabled = true
-	if on:
-		_mat.emission = Color(1.0, 0.1, 0.05)
-		_mat.emission_energy_multiplier = 4.0
-	else:
-		_mat.emission = Color(0.4, 0.05, 0.05)
-		_mat.emission_energy_multiplier = 1.0
+	for m in _vis.mats:
+		m.emission_enabled = true
+		m.emission = Color(1.0, 0.1, 0.05) if on else Color(0.4, 0.05, 0.05)
+		m.emission_energy_multiplier = 4.0 if on else 0.9
 
 func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.08, 0.94, 1.08), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
-	if _mat:
+	for m in _vis.mats:
+		m.emission_enabled = true
 		var t2 := create_tween()
-		t2.tween_property(_mat, "emission_energy_multiplier", 5.0, 0.02)
-		t2.tween_property(_mat, "emission_energy_multiplier", 1.0, 0.16)
+		t2.tween_property(m, "emission_energy_multiplier", 5.0, 0.02)
+		t2.tween_property(m, "emission_energy_multiplier", 0.9, 0.16)
 
 # --- Damage / combat interface ------------------------------------
 
@@ -420,6 +422,7 @@ func _die() -> void:
 	remove_from_group("boss")
 	$CollisionShape3D.set_deferred("disabled", true)
 	velocity = Vector3.ZERO
+	_vis.pause()
 
 	Game.add_kill(2000)
 

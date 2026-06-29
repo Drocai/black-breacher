@@ -28,18 +28,27 @@ var _telegraph_t: float = 0.0
 var _cooldown_t: float = 0.0
 var _locked_point: Vector3 = Vector3.ZERO
 var _player: Node3D
+var _vis := CharacterVisuals.new()
 
-@onready var head: MeshInstance3D = $Head
+const WALK_GLB := preload("res://characters/operator_swat_walk.glb")
+
+@export var model_yaw_offset_deg: float = 180.0
+
+@onready var mesh: Node3D = $Mesh
+@onready var muzzle: Marker3D = $Mesh/Muzzle
 @onready var beam: MeshInstance3D = $Beam
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
 	beam.visible = false
+	_vis.setup(mesh, WALK_GLB, model_yaw_offset_deg, Color(1, 1, 1, 1))
 
 func _physics_process(delta: float) -> void:
 	if _down:
 		return
+	# Bolted-down operator: hold a standing ready-stance (no locomotion).
+	_vis.drive(Vector3.ZERO, 1.0, delta, false)
 	if _cooldown_t > 0.0:
 		_cooldown_t -= delta
 
@@ -62,8 +71,8 @@ func _physics_process(delta: float) -> void:
 		return
 	var dir: Vector3 = to_player.normalized()
 
-	# Swivel the head to track the player.
-	head.rotation.y = lerp_angle(head.rotation.y, atan2(dir.x, dir.z), 6.0 * delta)
+	# Swivel the operator to track the player.
+	mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(dir.x, dir.z), 6.0 * delta)
 
 	if dist <= shoot_range and _cooldown_t <= 0.0:
 		_begin_telegraph(p)
@@ -78,7 +87,7 @@ func _begin_telegraph(p: Node3D) -> void:
 	_aim_beam_at(_locked_point)
 
 func _aim_beam_at(target: Vector3) -> void:
-	var origin: Vector3 = head.global_position
+	var origin: Vector3 = muzzle.global_position
 	var to_target: Vector3 = target - origin
 	var length: float = to_target.length()
 	if length < 0.001:
@@ -119,8 +128,8 @@ func take_hit(damage: int) -> void:
 		return
 	health -= damage
 	_flash()
-	Game.spawn_damage_number(global_position + Vector3(0.0, 1.4, 0.0), damage)
-	Game.spawn_hitspark(head.global_position)
+	Game.spawn_damage_number(global_position + Vector3(0.0, 1.9, 0.0), damage)
+	Game.spawn_hitspark(muzzle.global_position)
 	if health <= 0:
 		Game.add_kill()
 		_die()
@@ -136,8 +145,9 @@ func is_staggered() -> bool:
 
 func _flash() -> void:
 	var t: Tween = create_tween()
-	t.tween_property(head, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
-	t.tween_property(head, "scale", Vector3.ONE, 0.1)
+	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
+	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
+	_vis.pulse(self, Color(1.0, 0.15, 0.1), 3.0, 0.02, 0.16)
 
 func _die() -> void:
 	_down = true
@@ -145,7 +155,8 @@ func _die() -> void:
 	beam.visible = false
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
-	Game.spawn_hitspark(head.global_position)
+	_vis.pause()
+	Game.spawn_hitspark(muzzle.global_position)
 	var t: Tween = create_tween()
 	t.tween_property(self, "rotation:z", deg_to_rad(80.0), 0.4).set_ease(Tween.EASE_IN)
 	t.tween_interval(0.8)

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bbbossshot01"]
+
+[ext_resource type="Script" path="res://tools/capture/boss_shot_boot.gd" id="1_bs"]
+
+[node name="BossShotBoot" type="Node"]
+script = ExtResource("1_bs")

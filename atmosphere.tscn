@@ -1,0 +1,49 @@
+[gd_scene load_steps=7 format=3 uid="uid://b8atmosphere0vfx1"]
+
+[ext_resource type="Script" path="res://atmosphere.gd" id="1_atmos"]
+
+[sub_resource type="Gradient" id="Gradient_atmos"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_atmos"]
+gradient = SubResource("Gradient_atmos")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_atmos"]
+emission_shape = 3
+emission_box_extents = Vector3(8, 2.5, 12)
+direction = Vector3(0, 1, 0)
+spread = 180.0
+gravity = Vector3(0, -0.05, 0)
+initial_velocity_min = 0.05
+initial_velocity_max = 0.3
+angular_velocity_min = -10.0
+angular_velocity_max = 10.0
+scale_min = 0.5
+scale_max = 1.5
+color_ramp = SubResource("GradientTexture1D_atmos")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_atmos"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.6, 0.55, 0.45, 0.3)
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_atmos"]
+material = SubResource("StandardMaterial3D_atmos")
+size = Vector2(0.07, 0.07)
+
+[node name="Atmosphere" type="GPUParticles3D"]
+amount = 75
+lifetime = 8.0
+one_shot = false
+preprocess = 4.0
+explosiveness = 0.0
+local_coords = false
+visibility_aabb = AABB(-8, -2.5, -12, 16, 5, 24)
+process_material = SubResource("ParticleProcessMaterial_atmos")
+draw_pass_1 = SubResource("QuadMesh_atmos")
+script = ExtResource("1_atmos")

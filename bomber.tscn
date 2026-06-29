@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://bbbomber01"]
+[gd_scene load_steps=6 format=3 uid="uid://bbbomber01"]
 
 [ext_resource type="Script" path="res://bomber.gd" id="1_bomber"]
 
@@ -17,6 +17,15 @@ emission_enabled = true
 emission = Color(1, 0.35, 0.1, 1)
 emission_energy_multiplier = 2.0
 
+[sub_resource type="StandardMaterial3D" id="Mat_eye"]
+albedo_color = Color(0.6, 0.2, 0.05, 1)
+emission_enabled = true
+emission = Color(1, 0.45, 0.1, 1)
+emission_energy_multiplier = 9.0
+
+[sub_resource type="BoxMesh" id="Box_eye"]
+size = Vector3(0.24, 0.15, 0.09)
+
 [node name="Bomber" type="CharacterBody3D"]
 script = ExtResource("1_bomber")
 
@@ -24,6 +33,11 @@ script = ExtResource("1_bomber")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("Sphere_mesh")
 material_override = SubResource("Mat_bomber")
+
+[node name="Eye" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.43)
+mesh = SubResource("Box_eye")
+material_override = SubResource("Mat_eye")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

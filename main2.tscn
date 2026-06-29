@@ -25,6 +25,7 @@
 [ext_resource type="Material" path="res://materials/concrete_floor.tres" id="30_mfloor"]
 [ext_resource type="Material" path="res://materials/concrete_wall.tres" id="31_mwall"]
 [ext_resource type="Material" path="res://materials/steel.tres" id="32_msteel"]
+[ext_resource type="PackedScene" path="res://atmosphere.tscn" id="33_atmos"]
 
 [sub_resource type="ShaderMaterial" id="Mat_vignette"]
 shader = ExtResource("16_vig")
@@ -160,6 +161,10 @@ script = ExtResource("15_music")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Env")
+
+[node name="Atmosphere" parent="." instance=ExtResource("33_atmos")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -16.5)
+tint = Color(0.5, 0.62, 0.78, 1)
 
 [node name="Door" parent="." instance=ExtResource("2_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)

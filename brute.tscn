@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bbbrute01"]
+[gd_scene load_steps=15 format=3 uid="uid://bbbrute01"]
 
 [ext_resource type="Script" path="res://brute.gd" id="1_brute"]
 [ext_resource type="AudioStream" path="res://hit.wav" id="2_hit"]
@@ -42,6 +42,21 @@ albedo_color = Color(0.09, 0.09, 0.11, 1)
 metallic = 0.7
 roughness = 0.45
 
+[sub_resource type="StandardMaterial3D" id="Mat_visor"]
+albedo_color = Color(0.5, 0.05, 0.03, 1)
+emission_enabled = true
+emission = Color(1, 0.14, 0.06, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="BoxMesh" id="Box_visor"]
+size = Vector3(0.38, 0.11, 0.13)
+
+[sub_resource type="BoxMesh" id="Box_shoulder"]
+size = Vector3(0.36, 0.3, 0.5)
+
+[sub_resource type="BoxMesh" id="Box_core"]
+size = Vector3(0.16, 0.16, 0.08)
+
 [node name="Brute" type="CharacterBody3D"]
 transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)
 script = ExtResource("1_brute")
@@ -60,6 +75,26 @@ material_override = SubResource("Mat_head")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.62)
 mesh = SubResource("Shield_mesh")
 material_override = SubResource("Mat_shield")
+
+[node name="Visor" type="MeshInstance3D" parent="Mesh/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.27)
+mesh = SubResource("Box_visor")
+material_override = SubResource("Mat_visor")
+
+[node name="ShoulderL" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.46, 0.72, 0)
+mesh = SubResource("Box_shoulder")
+material_override = SubResource("Mat_head")
+
+[node name="ShoulderR" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.46, 0.72, 0)
+mesh = SubResource("Box_shoulder")
+material_override = SubResource("Mat_head")
+
+[node name="Core" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.46)
+mesh = SubResource("Box_core")
+material_override = SubResource("Mat_visor")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)

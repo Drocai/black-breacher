@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://ecppb8swvwuq"]
+[gd_scene load_steps=13 format=3 uid="uid://ecppb8swvwuq"]
 
 [ext_resource type="Script" path="res://enemy_ranged.gd" id="1_er"]
 [ext_resource type="PackedScene" path="res://projectile.tscn" id="2_proj"]
@@ -33,6 +33,21 @@ albedo_color = Color(0.12, 0.1, 0.16, 1)
 metallic = 0.3
 roughness = 0.4
 
+[sub_resource type="StandardMaterial3D" id="Mat_visor"]
+albedo_color = Color(0.35, 0.1, 0.5, 1)
+emission_enabled = true
+emission = Color(0.7, 0.2, 1, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="BoxMesh" id="Box_visor"]
+size = Vector3(0.34, 0.1, 0.12)
+
+[sub_resource type="BoxMesh" id="Box_shoulder"]
+size = Vector3(0.3, 0.24, 0.42)
+
+[sub_resource type="BoxMesh" id="Box_core"]
+size = Vector3(0.14, 0.14, 0.08)
+
 [node name="EnemyRanged" type="CharacterBody3D"]
 script = ExtResource("1_er")
 projectile_scene = ExtResource("2_proj")
@@ -46,6 +61,26 @@ material_override = SubResource("Mat_er")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
 mesh = SubResource("Head_mesh")
 material_override = SubResource("Mat_head")
+
+[node name="Visor" type="MeshInstance3D" parent="Mesh/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0.23)
+mesh = SubResource("Box_visor")
+material_override = SubResource("Mat_visor")
+
+[node name="ShoulderL" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38, 0.62, 0)
+mesh = SubResource("Box_shoulder")
+material_override = SubResource("Mat_head")
+
+[node name="ShoulderR" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38, 0.62, 0)
+mesh = SubResource("Box_shoulder")
+material_override = SubResource("Mat_head")
+
+[node name="Core" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.37)
+mesh = SubResource("Box_core")
+material_override = SubResource("Mat_visor")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

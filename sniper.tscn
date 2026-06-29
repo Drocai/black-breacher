@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bbsniper01"]
+[gd_scene load_steps=9 format=3 uid="uid://bbsniper01"]
 
 [ext_resource type="Script" path="res://sniper.gd" id="1_sniper"]
 
@@ -24,6 +24,9 @@ albedo_color = Color(0.14, 0.15, 0.2, 1)
 metallic = 0.45
 roughness = 0.3
 
+[sub_resource type="BoxMesh" id="Box_scope"]
+size = Vector3(0.16, 0.12, 0.22)
+
 [sub_resource type="BoxMesh" id="Beam_mesh"]
 size = Vector3(1.0, 1.0, 1.0)
 
@@ -46,6 +49,11 @@ material_override = SubResource("Mat_base")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 mesh = SubResource("Head_mesh")
 material_override = SubResource("Mat_head")
+
+[node name="Scope" type="MeshInstance3D" parent="Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0.42)
+mesh = SubResource("Box_scope")
+material_override = SubResource("Mat_beam")
 
 [node name="Beam" type="MeshInstance3D" parent="."]
 visible = false

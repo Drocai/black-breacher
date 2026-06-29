@@ -44,15 +44,10 @@ var _thrown_time: float = 0.0
 var _player: Node3D
 var _windup: float = 0.0
 var _windup_target: Node3D
-var _mats: Array[BaseMaterial3D] = []   # per-instance skinned materials (flash/glow)
-var _anim: AnimationPlayer
-var _cur_anim: String = ""
-var _anim_lock: float = 0.0             # one-shot anims own the model until this expires
+var _vis := CharacterVisuals.new()
 
 const PICKUP_SCENE := preload("res://pickup.tscn")
 const WALK_GLB := preload("res://characters/operator_swat_walk.glb")
-const ANIM_RUN := "Armature|running|baselayer"
-const ANIM_WALK := "Armature|walking_man|baselayer"
 
 # Operator GLB faces -Z; our facing math (atan2(dir.x, dir.z)) points +Z at the
 # target, so spin the model 180 so it runs toward the player face-first.
@@ -68,48 +63,14 @@ func _ready() -> void:
 	alerted = start_alerted
 	mesh.rotation.y = deg_to_rad(initial_facing_deg)
 	_patrol_origin = global_position
-	_setup_model()
-
-func _setup_model() -> void:
-	# Orient the skinned operator within the facing wrapper.
-	var op := mesh.get_child(0) if mesh.get_child_count() > 0 else null
-	if op is Node3D:
-		(op as Node3D).rotation.y = deg_to_rad(model_yaw_offset_deg)
-	# Per-instance skinned materials so hit-flash / attack-glow are local.
-	for mi in mesh.find_children("*", "MeshInstance3D", true, false):
-		var m: MeshInstance3D = mi
-		for s in m.get_surface_override_material_count():
-			var base := m.get_active_material(s)
-			if base is BaseMaterial3D:
-				var dup: BaseMaterial3D = base.duplicate()
-				if tint != Color(1, 1, 1, 1):
-					dup.albedo_color = dup.albedo_color * tint
-				m.set_surface_override_material(s, dup)
-				_mats.append(dup)
-	# Animation: the model ships with "running"; graft "walking" from the walk
-	# GLB so unaware guards can pace and chasers can sprint.
-	_anim = mesh.find_child("AnimationPlayer", true, false)
-	if _anim:
-		var lib := _anim.get_animation_library("")
-		if lib:
-			if _anim.has_animation(ANIM_RUN):
-				_anim.get_animation(ANIM_RUN).loop_mode = Animation.LOOP_LINEAR
-			if not _anim.has_animation(ANIM_WALK):
-				var tmp := WALK_GLB.instantiate()
-				var tap: AnimationPlayer = tmp.find_child("AnimationPlayer", true, false)
-				if tap and tap.has_animation(ANIM_WALK):
-					var wa: Animation = tap.get_animation(ANIM_WALK).duplicate(true)
-					wa.loop_mode = Animation.LOOP_LINEAR
-					lib.add_animation(ANIM_WALK, wa)
-				tmp.queue_free()
-		_play_anim(ANIM_RUN)
+	_vis.setup(mesh, WALK_GLB, model_yaw_offset_deg, tint)
 
 func _physics_process(delta: float) -> void:
 	# Held by the player — the player positions us; no own physics.
 	if _grabbed:
 		return
 
-	_update_anim(delta)
+	_vis.drive(velocity, move_speed, delta, _down)
 
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -197,35 +158,6 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-# --- Skinned-model animation control ---
-func _play_anim(name: String, blend: float = 0.12) -> void:
-	if _anim == null or name == _cur_anim or not _anim.has_animation(name):
-		return
-	_cur_anim = name
-	_anim.play(name, blend)
-
-func _update_anim(delta: float) -> void:
-	if _anim == null:
-		return
-	if _anim_lock > 0.0:
-		_anim_lock -= delta
-		return
-	if _down:
-		return
-	# Locomotion from horizontal speed: sprint when chasing, pace when slow,
-	# settle to a held stance (paused) when essentially still.
-	var spd := Vector2(velocity.x, velocity.z).length()
-	if spd > move_speed * 0.55:
-		_play_anim(ANIM_RUN)
-		_anim.speed_scale = clampf(spd / max(move_speed, 0.1), 0.85, 1.5)
-	elif spd > 0.25:
-		_play_anim(ANIM_WALK)
-		_anim.speed_scale = 1.0
-	else:
-		# Hold a grounded ready-stance (first frame of walk), not a frozen sprint.
-		_play_anim(ANIM_WALK)
-		_anim.speed_scale = 0.0
-
 func _get_player() -> Node3D:
 	if is_instance_valid(_player):
 		return _player
@@ -300,13 +232,7 @@ func _land_attack() -> void:
 			p.take_damage(attack_damage)
 
 func _set_glow(on: bool) -> void:
-	for m in _mats:
-		m.emission_enabled = on
-		if on:
-			m.emission = Color(1.0, 0.25, 0.1)
-			m.emission_energy_multiplier = 2.5
-		else:
-			m.emission_energy_multiplier = 0.0
+	_vis.set_glow(on, Color(1.0, 0.25, 0.1))
 
 func take_hit(damage: int) -> void:
 	if _down:
@@ -394,12 +320,7 @@ func _flash() -> void:
 	var t := create_tween()
 	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
 	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
-	for m in _mats:
-		m.emission_enabled = true
-		m.emission = Color(1.0, 0.15, 0.1)
-		var t2 := create_tween()
-		t2.tween_property(m, "emission_energy_multiplier", 3.5, 0.02)
-		t2.tween_property(m, "emission_energy_multiplier", 0.0, 0.16)
+	_vis.pulse(self, Color(1.0, 0.15, 0.1), 3.5, 0.02, 0.16)
 
 func _knockback_anim() -> void:
 	var t := create_tween()
@@ -417,8 +338,7 @@ func _die() -> void:
 	_down = true
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
-	if _anim:
-		_anim.pause()   # freeze mid-stride; the topple tween sells the drop
+	_vis.pause()   # freeze mid-stride; the topple tween sells the drop
 	_maybe_drop_pickup()
 	var t := create_tween()
 	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)

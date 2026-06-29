@@ -45,7 +45,7 @@ uv1_scale = Vector3(30, 30, 1)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
-height = 2.1273804
+height = 1.98
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 
@@ -132,7 +132,7 @@ material = ExtResource("30_mfloor")
 script = ExtResource("1_0xm2m")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0397034, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.99, 0)
 shape = SubResource("CapsuleShape3D_player")
 
 [node name="breacher" parent="Player" instance=ExtResource("1_ig7tw")]

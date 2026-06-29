@@ -1,11 +1,11 @@
 extends CharacterBody3D
 
 # ============================================================
-#  BLACK BREACHER — armored brute
-#  A slow, tanky bruiser. Chases the nearest player and lands heavy
-#  lunging attacks on a wind-up telegraph. Light jabs glance off its
-#  armor (deflected to a fraction); heavy blows (kick / halligan /
-#  special / finisher) bite for full damage. Topples on death.
+#  BLACK BREACHER — armored brute (KayKit Barbarian)
+#  A slow, tanky bruiser. Chases the player and lands heavy lunging
+#  attacks on a wind-up telegraph. Light jabs glance off its armor
+#  (deflected to a fraction); heavy blows bite for full damage.
+#  Real skinned character driven by its AnimationPlayer.
 # ============================================================
 
 @export var max_health: int = 12
@@ -22,6 +22,13 @@ extends CharacterBody3D
 @export var hitstun_time: float = 0.12
 @export var stagger_resist: float = 0.55   # 0 = no resist, 1 = immovable
 @export var tint: Color = Color(1, 1, 1, 1)
+@export var model_yaw_offset: float = 0.0
+
+const ANIM_IDLE := "Idle"
+const ANIM_RUN := "Walking_A"
+const ANIM_ATTACK := "2H_Melee_Attack_Chop"
+const ANIM_HIT := "Hit_A"
+const ANIM_DEATH := "Death_A"
 
 var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -31,24 +38,36 @@ var _stagger_time: float = 0.0
 var _player: Node3D
 var _windup: float = 0.0
 var _windup_target: Node3D
-var _mat: StandardMaterial3D
+var _anim_lock: float = 0.0
 
 const PICKUP_SCENE := preload("res://pickup.tscn")
 
-@onready var mesh: MeshInstance3D = $Mesh
+@onready var model: Node3D = $Model
 @onready var hit_sound: AudioStreamPlayer3D = get_node_or_null("HitSound")
 @onready var _agent: NavigationAgent3D = get_node_or_null("NavAgent")
+var anim: AnimationPlayer
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
-	# Per-instance material so hit-flash / attack-glow don't affect other brutes.
-	if mesh.material_override is StandardMaterial3D:
-		_mat = mesh.material_override.duplicate()
-		_mat.albedo_color = _mat.albedo_color * tint
-		mesh.material_override = _mat
+	var ap := model.find_child("AnimationPlayer", true, false)
+	if ap is AnimationPlayer:
+		anim = ap
+		_play_anim(ANIM_IDLE, 0.0)
+
+func _play_anim(name: String, blend: float = 0.12) -> void:
+	if anim != null and anim.has_animation(name) and anim.current_animation != name:
+		anim.play(name, blend)
+
+func _update_loco(moving: bool) -> void:
+	if _down or _anim_lock > 0.0:
+		return
+	_play_anim(ANIM_RUN if moving else ANIM_IDLE)
 
 func _physics_process(delta: float) -> void:
+	if _anim_lock > 0.0:
+		_anim_lock -= delta
+
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -66,8 +85,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	# Winding up — committed; holds position and telegraphs (red glow),
-	# giving the player a window to block / parry / dodge / step out.
+	# Winding up — committed; the heavy attack anim plays.
 	if _windup > 0.0:
 		_windup -= delta
 		velocity.x = move_toward(velocity.x, 0.0, move_speed)
@@ -86,10 +104,9 @@ func _physics_process(delta: float) -> void:
 		to_player.y = 0.0
 		var dist := to_player.length()
 		var dir := to_player.normalized()
+		var moving := false
 
 		if dist > stop_distance:
-			# Path around walls/crates via the navmesh; fall back to a direct
-			# bearing (with a sidestep) if no path is available.
 			var move_dir := dir
 			if _agent != null:
 				_agent.target_position = player.global_position
@@ -103,6 +120,7 @@ func _physics_process(delta: float) -> void:
 				var perp := Vector3(-dir.z, 0.0, dir.x)
 				velocity.x += perp.x * move_speed
 				velocity.z += perp.z * move_speed
+			moving = true
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, move_speed)
 			velocity.z = move_toward(velocity.z, 0.0, move_speed)
@@ -110,10 +128,12 @@ func _physics_process(delta: float) -> void:
 				_begin_attack(player)
 
 		if dist <= detect_range:
-			mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(dir.x, dir.z), 6.0 * delta)
+			model.rotation.y = lerp_angle(model.rotation.y, atan2(dir.x, dir.z) + model_yaw_offset, 6.0 * delta)
+		_update_loco(moving)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, move_speed)
 		velocity.z = move_toward(velocity.z, 0.0, move_speed)
+		_update_loco(false)
 
 	move_and_slide()
 
@@ -128,35 +148,18 @@ func _begin_attack(player: Node3D) -> void:
 	_atk_cd = attack_cooldown
 	_windup = 0.55   # heavier, slower telegraph than the basic enemy
 	_windup_target = player
-	_set_glow(true)
-	var t := create_tween()
-	t.tween_property(mesh, "position:z", 0.22, 0.5)   # big anticipation pull-back
+	_play_anim(ANIM_ATTACK, 0.1)
+	_anim_lock = 0.9
 
 func _land_attack() -> void:
-	_set_glow(false)
-	var t := create_tween()
-	t.tween_property(mesh, "position:z", -0.5, 0.08)   # heavy lunge
-	t.tween_property(mesh, "position:z", 0.0, 0.16)
 	var p := _windup_target
 	if is_instance_valid(p) and p.has_method("take_damage"):
 		if global_position.distance_to(p.global_position) <= attack_range + 0.6:
 			p.take_damage(attack_damage)
 
-func _set_glow(on: bool) -> void:
-	if _mat == null:
-		return
-	_mat.emission_enabled = on
-	if on:
-		_mat.emission = Color(1.0, 0.2, 0.05)
-		_mat.emission_energy_multiplier = 2.5
-	else:
-		_mat.emission_energy_multiplier = 0.0
-
 # --- Armor mechanic -----------------------------------------
 # Light jabs (damage < armor_threshold) glance off: only ~30% lands
-# (min 1) and we play a metallic "clink" deflect spark. Heavy blows
-# (kick / halligan / special / finisher, damage >= armor_threshold)
-# punch through for full damage.
+# (min 1) + a deflect spark. Heavy blows punch through for full damage.
 func take_hit(damage: int) -> void:
 	if _down:
 		return
@@ -164,16 +167,11 @@ func take_hit(damage: int) -> void:
 	var dealt := damage
 	if deflected:
 		dealt = max(1, int(round(damage * 0.3)))
-		_clink()
-	else:
-		_flash()
 	health -= dealt
 	if hit_sound:
 		hit_sound.play()
-	# Always report the ACTUAL damage dealt.
 	Game.spawn_damage_number(global_position + Vector3(0.0, 2.2, 0.0), dealt)
 	if deflected:
-		# Spark at chest height — reads as a deflect off the plating.
 		Game.spawn_hitspark(global_position + Vector3(0.0, 1.3, 0.0))
 	else:
 		Game.spawn_hitspark(global_position + Vector3(0.0, 1.5, 0.0))
@@ -181,9 +179,10 @@ func take_hit(damage: int) -> void:
 		Game.add_kill()
 		_die()
 	else:
-		# Light hits barely move the brute; heavy hits rock it.
+		# Light hits barely faze the brute; heavy hits rock it with a hit react.
 		if not deflected:
-			_knockback_anim()
+			_play_anim(ANIM_HIT, 0.05)
+			_anim_lock = 0.35
 			_apply_knockback()
 
 func _apply_knockback() -> void:
@@ -202,34 +201,11 @@ func stagger(dir: Vector3) -> void:
 	_atk_cd = max(_atk_cd, 0.5)
 	velocity = dir.normalized() * 7.0 * (1.0 - stagger_resist)
 	velocity.y = 0.0
+	_play_anim(ANIM_HIT, 0.05)
+	_anim_lock = 0.3
 
 func is_staggered() -> bool:
 	return _stagger_time > 0.0
-
-func _flash() -> void:
-	var t := create_tween()
-	t.tween_property(mesh, "scale", Vector3(1.1, 0.9, 1.1), 0.05)
-	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
-	if _mat:
-		_mat.emission_enabled = true
-		_mat.emission = Color(1.0, 0.15, 0.1)
-		var t2 := create_tween()
-		t2.tween_property(_mat, "emission_energy_multiplier", 3.5, 0.02)
-		t2.tween_property(_mat, "emission_energy_multiplier", 0.0, 0.16)
-
-func _clink() -> void:
-	# A short, cold metallic flash — the hit skids off the armor.
-	if _mat:
-		_mat.emission_enabled = true
-		_mat.emission = Color(0.7, 0.8, 1.0)
-		var t := create_tween()
-		t.tween_property(_mat, "emission_energy_multiplier", 2.0, 0.02)
-		t.tween_property(_mat, "emission_energy_multiplier", 0.0, 0.1)
-
-func _knockback_anim() -> void:
-	var t := create_tween()
-	t.tween_property(mesh, "rotation:x", deg_to_rad(10.0), 0.05)
-	t.tween_property(mesh, "rotation:x", 0.0, 0.15)
 
 func _maybe_drop_pickup() -> void:
 	if randf() > pickup_drop_chance:
@@ -243,7 +219,9 @@ func _die() -> void:
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
 	_maybe_drop_pickup()
+	_play_anim(ANIM_DEATH, 0.1)
+	_anim_lock = 999.0
 	var t := create_tween()
-	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	t.tween_interval(0.8)
+	t.tween_interval(1.6)
+	t.tween_property(self, "position:y", position.y - 1.2, 0.6)
 	t.tween_callback(queue_free)

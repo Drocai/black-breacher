@@ -1,100 +1,18 @@
-[gd_scene load_steps=15 format=3 uid="uid://bbbrute01"]
+[gd_scene load_steps=5 format=3 uid="uid://bbbrute01"]
 
 [ext_resource type="Script" path="res://brute.gd" id="1_brute"]
 [ext_resource type="AudioStream" path="res://hit.wav" id="2_hit"]
+[ext_resource type="PackedScene" path="res://characters/Barbarian.glb" id="3_model"]
 
 [sub_resource type="CapsuleShape3D" id="Cap_shape"]
 radius = 0.55
 height = 2.2
 
-[sub_resource type="CapsuleMesh" id="Cap_mesh"]
-radius = 0.55
-height = 2.2
-
-[sub_resource type="FastNoiseLite" id="FNL_brute"]
-frequency = 0.25
-
-[sub_resource type="NoiseTexture2D" id="Noise_brute"]
-noise = SubResource("FNL_brute")
-seamless = true
-
-[sub_resource type="StandardMaterial3D" id="Mat_brute"]
-albedo_color = Color(0.12, 0.12, 0.14, 1)
-albedo_texture = SubResource("Noise_brute")
-uv1_scale = Vector3(2, 2, 2)
-metallic = 0.5
-roughness = 0.55
-
-[sub_resource type="SphereMesh" id="Head_mesh"]
-radius = 0.32
-height = 0.64
-
-[sub_resource type="StandardMaterial3D" id="Mat_head"]
-albedo_color = Color(0.07, 0.07, 0.09, 1)
-metallic = 0.4
-roughness = 0.35
-
-[sub_resource type="BoxMesh" id="Shield_mesh"]
-size = Vector3(0.9, 1.3, 0.15)
-
-[sub_resource type="StandardMaterial3D" id="Mat_shield"]
-albedo_color = Color(0.09, 0.09, 0.11, 1)
-metallic = 0.7
-roughness = 0.45
-
-[sub_resource type="StandardMaterial3D" id="Mat_visor"]
-albedo_color = Color(0.5, 0.05, 0.03, 1)
-emission_enabled = true
-emission = Color(1, 0.14, 0.06, 1)
-emission_energy_multiplier = 6.0
-
-[sub_resource type="BoxMesh" id="Box_visor"]
-size = Vector3(0.38, 0.11, 0.13)
-
-[sub_resource type="BoxMesh" id="Box_shoulder"]
-size = Vector3(0.36, 0.3, 0.5)
-
-[sub_resource type="BoxMesh" id="Box_core"]
-size = Vector3(0.16, 0.16, 0.08)
-
 [node name="Brute" type="CharacterBody3D"]
 transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)
 script = ExtResource("1_brute")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-mesh = SubResource("Cap_mesh")
-material_override = SubResource("Mat_brute")
-
-[node name="Head" type="MeshInstance3D" parent="Mesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
-mesh = SubResource("Head_mesh")
-material_override = SubResource("Mat_head")
-
-[node name="Shield" type="MeshInstance3D" parent="Mesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.62)
-mesh = SubResource("Shield_mesh")
-material_override = SubResource("Mat_shield")
-
-[node name="Visor" type="MeshInstance3D" parent="Mesh/Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.27)
-mesh = SubResource("Box_visor")
-material_override = SubResource("Mat_visor")
-
-[node name="ShoulderL" type="MeshInstance3D" parent="Mesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.46, 0.72, 0)
-mesh = SubResource("Box_shoulder")
-material_override = SubResource("Mat_head")
-
-[node name="ShoulderR" type="MeshInstance3D" parent="Mesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.46, 0.72, 0)
-mesh = SubResource("Box_shoulder")
-material_override = SubResource("Mat_head")
-
-[node name="Core" type="MeshInstance3D" parent="Mesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.46)
-mesh = SubResource("Box_core")
-material_override = SubResource("Mat_visor")
+[node name="Model" parent="." instance=ExtResource("3_model")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)

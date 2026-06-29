@@ -49,11 +49,17 @@ approved task).
 2. ✅ **Grunt 0.90 → 0.96** (via `CharacterScale.GRUNT_SCALE`) and **boss 1.50 → 1.06**, **brute 1.20 → 1.02**.
 3. ✅ Add `character_scale.gd` const holding the table above + a `capsule_for(height)` helper.
 4. ✅ De-duplicate the grunt scale constant (`main*.tscn` Guard1/Guard2 + `wave_manager.gd`).
-5. ⏳ Align collision capsules to corrected heights (player ~1.98 @ y0.99; boss/brute capsule height
-   ~1.91 so it tracks the mesh). **Do this AFTER the visual scale is F5-verified** — capsules are
-   derived from the verified heights. NOTE: player `AnimationPlayer.speed_scale = 0.654` in
-   `main.tscn` is dead — `player.gd` `_ready()` forces `speed_scale = 1.0` in every arena, so there
-   is no real cadence drift (audit item corrected).
+5. ✅ Align collision capsules to measured heights. Node-scaled chars use SubResource height =
+   native (boss/brute 1.91, grunt 1.85) so capsule tracks the mesh through node scale; player
+   (body unscaled) uses capsule = rendered height (1.98 @ y0.99). Radii left as-is. NOTE: player
+   `AnimationPlayer.speed_scale = 0.654` in `main.tscn` is dead — `player.gd` `_ready()` forces
+   `speed_scale = 1.0` in every arena, so there is no real cadence drift (audit item corrected).
+
+### Open follow-ups (not yet done)
+- Capsule sweep for the other humanoid archetypes (ranged/bomber/medic/sniper) — same native-height rule.
+- Convert player from mesh-child scaling to root-node scaling so all characters use one method (approval-gated).
+- Repo public → private + fine-grained PAT (Derrick's GitHub action).
+- heavy/fast enemy tiers: confirm the deliberate 7'11"/5'2" silhouettes or pull toward human range.
 
 ## How we collaborate (roles)
 - **PM (Cowork):** owns this ledger, writes issue specs, reviews PR diffs, merges, runs the daily standup.

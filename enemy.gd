@@ -1,9 +1,11 @@
 extends CharacterBody3D
 
 # ============================================================
-#  BLACK BREACHER — reactive enemy
+#  BLACK BREACHER — reactive enemy (KayKit rigged humanoid)
 #  Chases the player, attacks at close range on a cooldown, takes
-#  hits, can be staggered/knocked back, and topples on death.
+#  hits, can be staggered/knocked back, and dies. Visuals are a real
+#  skinned character (a KayKit GLB) driven by its AnimationPlayer;
+#  the same AI/physics/awareness/stagger/grab logic as before.
 # ============================================================
 
 @export var max_health: int = 4
@@ -26,8 +28,17 @@ extends CharacterBody3D
 @export var view_distance: float = 9.0
 @export var view_dot: float = 0.4
 @export var detect_time: float = 0.8
-@export var tint: Color = Color(1, 1, 1, 1)
+@export var tint: Color = Color(1, 1, 1, 1)   # kept for API compat (model is textured)
 @export var patrol_distance: float = 0.0   # >0 = an unaware guard paces this far and back
+@export var model_yaw_offset: float = 0.0   # rotate the model if its rig faces the wrong way
+
+# Animation clip names (KayKit shared rig).
+const ANIM_IDLE := "Idle"
+const ANIM_RUN := "Running_A"
+const ANIM_WALK := "Walking_A"
+const ANIM_ATTACK := "1H_Melee_Attack_Chop"
+const ANIM_HIT := "Hit_A"
+const ANIM_DEATH := "Death_A"
 
 var health: int
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -44,27 +55,42 @@ var _thrown_time: float = 0.0
 var _player: Node3D
 var _windup: float = 0.0
 var _windup_target: Node3D
-var _mat: StandardMaterial3D
+var _anim_lock: float = 0.0   # while >0, a one-shot anim (attack/hit) owns the model
 
 const PICKUP_SCENE := preload("res://pickup.tscn")
 
-@onready var mesh: MeshInstance3D = $Mesh
+@onready var model: Node3D = $Model
 @onready var hit_sound: AudioStreamPlayer3D = get_node_or_null("HitSound")
 @onready var _agent: NavigationAgent3D = get_node_or_null("NavAgent")
+var anim: AnimationPlayer
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemy")
 	alerted = start_alerted
-	mesh.rotation.y = deg_to_rad(initial_facing_deg)
+	model.rotation.y = deg_to_rad(initial_facing_deg) + model_yaw_offset
 	_patrol_origin = global_position
-	# Per-instance material so hit-flash / attack-glow don't affect other enemies.
-	if mesh.material_override is StandardMaterial3D:
-		_mat = mesh.material_override.duplicate()
-		_mat.albedo_color = _mat.albedo_color * tint
-		mesh.material_override = _mat
+	var ap := model.find_child("AnimationPlayer", true, false)
+	if ap is AnimationPlayer:
+		anim = ap
+		_play_anim(ANIM_IDLE, 0.0)
+
+func _play_anim(name: String, blend: float = 0.12) -> void:
+	if anim != null and anim.has_animation(name) and anim.current_animation != name:
+		anim.play(name, blend)
+
+func _face(dir: Vector3, delta: float) -> void:
+	model.rotation.y = lerp_angle(model.rotation.y, atan2(dir.x, dir.z) + model_yaw_offset, 8.0 * delta)
+
+func _update_loco(moving: bool) -> void:
+	if _down or _anim_lock > 0.0:
+		return
+	_play_anim(ANIM_RUN if moving else ANIM_IDLE)
 
 func _physics_process(delta: float) -> void:
+	if _anim_lock > 0.0:
+		_anim_lock -= delta
+
 	# Held by the player — the player positions us; no own physics.
 	if _grabbed:
 		return
@@ -104,8 +130,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	# Winding up an attack — committed; holds position and telegraphs (red glow),
-	# giving the player a window to block / parry / dodge / step out of range.
+	# Winding up an attack — committed; holds position, the attack anim plays.
 	if _windup > 0.0:
 		_windup -= delta
 		velocity.x = move_toward(velocity.x, 0.0, move_speed)
@@ -124,6 +149,7 @@ func _physics_process(delta: float) -> void:
 		to_player.y = 0.0
 		var dist := to_player.length()
 		var dir := to_player.normalized()
+		var moving := false
 
 		if dist > stop_distance:
 			# Path around walls/crates via the navmesh; fall back to a direct
@@ -141,6 +167,7 @@ func _physics_process(delta: float) -> void:
 				var perp := Vector3(-dir.z, 0.0, dir.x)
 				velocity.x += perp.x * move_speed
 				velocity.z += perp.z * move_speed
+			moving = true
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, move_speed)
 			velocity.z = move_toward(velocity.z, 0.0, move_speed)
@@ -148,10 +175,12 @@ func _physics_process(delta: float) -> void:
 				_begin_attack(player)
 
 		if dist <= detect_range:
-			mesh.rotation.y = lerp_angle(mesh.rotation.y, atan2(dir.x, dir.z), 8.0 * delta)
+			_face(dir, delta)
+		_update_loco(moving)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, move_speed)
 		velocity.z = move_toward(velocity.z, 0.0, move_speed)
+		_update_loco(false)
 
 	move_and_slide()
 
@@ -163,17 +192,20 @@ func _get_player() -> Node3D:
 	return _player
 
 func _update_unaware(delta: float) -> void:
+	var moving := false
 	if patrol_distance > 0.0:
 		# Pace along the facing axis; turn back toward home when past the limit.
-		var pf := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+		var pf := Vector3(sin(model.rotation.y - model_yaw_offset), 0.0, cos(model.rotation.y - model_yaw_offset))
 		velocity.x = pf.x * move_speed * 0.5
 		velocity.z = pf.z * move_speed * 0.5
+		moving = true
 		if global_position.distance_to(_patrol_origin) > patrol_distance:
 			var back: Vector3 = _patrol_origin - global_position
-			mesh.rotation.y = atan2(back.x, back.z)
+			model.rotation.y = atan2(back.x, back.z) + model_yaw_offset
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, move_speed)
 		velocity.z = move_toward(velocity.z, 0.0, move_speed)
+	_update_loco(moving)
 	var p := _get_player()
 	if p == null:
 		return
@@ -183,7 +215,7 @@ func _update_unaware(delta: float) -> void:
 	var see := view_distance
 	if "sneaking" in p and p.sneaking:
 		see *= 0.4
-	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
+	var fwd := Vector3(sin(model.rotation.y - model_yaw_offset), 0.0, cos(model.rotation.y - model_yaw_offset))
 	if dist < see and fwd.dot(to.normalized()) > view_dot and _has_los(p):
 		_awareness += delta / detect_time
 		if _awareness >= 1.0 and not alerted:
@@ -214,35 +246,19 @@ func _begin_attack(player: Node3D) -> void:
 	_atk_cd = attack_cooldown
 	_windup = 0.4
 	_windup_target = player
-	_set_glow(true)
-	var t := create_tween()
-	t.tween_property(mesh, "position:z", 0.18, 0.35)   # anticipation pull-back
+	_play_anim(ANIM_ATTACK, 0.08)
+	_anim_lock = 0.7
 
 func _land_attack() -> void:
-	_set_glow(false)
-	var t := create_tween()
-	t.tween_property(mesh, "position:z", -0.4, 0.07)   # lunge
-	t.tween_property(mesh, "position:z", 0.0, 0.12)
 	var p := _windup_target
 	if is_instance_valid(p) and p.has_method("take_damage"):
 		if global_position.distance_to(p.global_position) <= attack_range + 0.5:
 			p.take_damage(attack_damage)
 
-func _set_glow(on: bool) -> void:
-	if _mat == null:
-		return
-	_mat.emission_enabled = on
-	if on:
-		_mat.emission = Color(1.0, 0.25, 0.1)
-		_mat.emission_energy_multiplier = 2.5
-	else:
-		_mat.emission_energy_multiplier = 0.0
-
 func take_hit(damage: int) -> void:
 	if _down:
 		return
 	health -= damage
-	_flash()
 	if hit_sound:
 		hit_sound.play()
 	Game.spawn_damage_number(global_position + Vector3(0.0, 1.8, 0.0), damage)
@@ -251,7 +267,8 @@ func take_hit(damage: int) -> void:
 		Game.add_kill()
 		_die()
 	else:
-		_knockback_anim()
+		_play_anim(ANIM_HIT, 0.05)
+		_anim_lock = 0.35
 		_apply_knockback()
 
 func _apply_knockback() -> void:
@@ -270,6 +287,8 @@ func stagger(dir: Vector3) -> void:
 	_atk_cd = max(_atk_cd, 0.6)
 	velocity = dir.normalized() * 7.0
 	velocity.y = 0.0
+	_play_anim(ANIM_HIT, 0.05)
+	_anim_lock = 0.35
 
 func is_staggered() -> bool:
 	return _stagger_time > 0.0
@@ -282,7 +301,6 @@ func _wall_splat() -> void:
 	Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0))
 	Game.spawn_debris(global_position + Vector3(0.0, 0.4, 0.0))
 	Game.spawn_damage_number(global_position + Vector3(0.0, 1.8, 0.0), 2)
-	_flash()
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam and cam.has_method("shake"):
 		cam.shake(0.12, 0.2)
@@ -320,22 +338,6 @@ func _thrown_impact() -> void:
 	Game.add_kill()
 	_die()
 
-func _flash() -> void:
-	var t := create_tween()
-	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
-	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
-	if _mat:
-		_mat.emission_enabled = true
-		_mat.emission = Color(1.0, 0.15, 0.1)
-		var t2 := create_tween()
-		t2.tween_property(_mat, "emission_energy_multiplier", 3.5, 0.02)
-		t2.tween_property(_mat, "emission_energy_multiplier", 0.0, 0.16)
-
-func _knockback_anim() -> void:
-	var t := create_tween()
-	t.tween_property(mesh, "rotation:x", deg_to_rad(18.0), 0.05)
-	t.tween_property(mesh, "rotation:x", 0.0, 0.15)
-
 func _maybe_drop_pickup() -> void:
 	if randf() > pickup_drop_chance:
 		return
@@ -348,7 +350,10 @@ func _die() -> void:
 	remove_from_group("enemy")
 	$CollisionShape3D.set_deferred("disabled", true)
 	_maybe_drop_pickup()
+	_play_anim(ANIM_DEATH, 0.1)
+	_anim_lock = 999.0
+	# Let the death animation play out, then sink and free.
 	var t := create_tween()
-	t.tween_property(self, "rotation:z", deg_to_rad(90.0), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	t.tween_interval(0.8)
+	t.tween_interval(1.6)
+	t.tween_property(self, "position:y", position.y - 1.2, 0.6)
 	t.tween_callback(queue_free)

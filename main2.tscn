@@ -177,13 +177,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, -2)
 
 [node name="Guard1" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -3.5, 0, -8)
+transform = Transform3D(0.96, 0, 0, 0, 0.96, 0, 0, 0, 0.96, -3.5, 0, -8)
 start_alerted = false
 initial_facing_deg = 180.0
 patrol_distance = 2.0
 
 [node name="Guard2" parent="." instance=ExtResource("4_enemy")]
-transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 3.5, 0, -8)
+transform = Transform3D(0.96, 0, 0, 0, 0.96, 0, 0, 0, 0.96, 3.5, 0, -8)
 start_alerted = false
 initial_facing_deg = 180.0
 patrol_distance = 2.0

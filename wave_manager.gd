@@ -160,7 +160,7 @@ func _spawn_enemy(kind: String, pos: Vector3) -> void:
 		_:
 			e = MELEE.instantiate()
 			e.max_health = int(round(4 * hp_scale))
-			e.scale = Vector3.ONE * 0.9
+			e.scale = Vector3.ONE * CharacterScale.GRUNT_SCALE
 	# Difficulty scaling
 	e.max_health = maxi(1, int(round(float(e.max_health) * Game.hp_mult())))
 	if "attack_damage" in e:

@@ -48,6 +48,12 @@ radius = 0.4
 height = 1.98
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+sky_top_color = Color(0.03, 0.04, 0.08, 1)
+sky_horizon_color = Color(0.08, 0.09, 0.13, 1)
+sky_energy_multiplier = 0.4
+ground_bottom_color = Color(0.02, 0.02, 0.03, 1)
+ground_horizon_color = Color(0.06, 0.07, 0.1, 1)
+ground_energy_multiplier = 0.3
 
 [sub_resource type="Sky" id="Sky_res"]
 sky_material = SubResource("Sky_mat")
@@ -56,7 +62,8 @@ sky_material = SubResource("Sky_mat")
 background_mode = 2
 sky = SubResource("Sky_res")
 ambient_light_source = 3
-ambient_light_energy = 0.26
+ambient_light_energy = 0.22
+ambient_light_color = Color(0.45, 0.5, 0.62, 1)
 tonemap_mode = 3
 tonemap_exposure = 0.88
 ssao_enabled = true
@@ -69,8 +76,8 @@ glow_bloom = 0.1
 glow_hdr_threshold = 1.0
 fog_enabled = true
 fog_light_color = Color(0.05, 0.06, 0.09, 1)
-fog_density = 0.014
-fog_sky_affect = 0.0
+fog_density = 0.04
+fog_sky_affect = 0.4
 adjustment_enabled = true
 adjustment_contrast = 1.06
 adjustment_saturation = 1.08
@@ -151,6 +158,8 @@ script = ExtResource("11_cam")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.6427876, 0.7660444, 0, -0.7660444, 0.6427876, 0, 10, 0)
+light_color = Color(0.62, 0.7, 0.95, 1)
+light_energy = 1.0
 light_color = Color(0.85, 0.9, 1, 1)
 shadow_enabled = true
 

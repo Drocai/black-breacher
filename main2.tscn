@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://bb2cellblock01"]
+[gd_scene load_steps=37 format=3 uid="uid://bb2cellblock01"]
 
 [ext_resource type="Script" path="res://player.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" path="res://breacher.glb" id="1_ig7tw"]
@@ -26,6 +26,7 @@
 [ext_resource type="Material" path="res://materials/concrete_wall.tres" id="31_mwall"]
 [ext_resource type="Material" path="res://materials/steel.tres" id="32_msteel"]
 [ext_resource type="PackedScene" path="res://atmosphere.tscn" id="33_atmos"]
+[ext_resource type="Script" path="res://site_builder.gd" id="40_site"]
 
 [sub_resource type="ShaderMaterial" id="Mat_vignette"]
 shader = ExtResource("16_vig")
@@ -178,6 +179,11 @@ tint = Color(0.5, 0.62, 0.78, 1)
 [node name="Door" parent="." instance=ExtResource("2_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
 is_entry = true
+
+[node name="Site" type="Node3D" parent="."]
+script = ExtResource("40_site")
+concrete_tint = Color(0.3, 0.31, 0.34, 1)
+flood_color = Color(0.75, 0.85, 1.0, 1)
 
 [node name="ArmorA" parent="." instance=ExtResource("20_armor")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -2)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://bb3cargoyard01"]
+[gd_scene load_steps=39 format=3 uid="uid://bb3cargoyard01"]
 
 [ext_resource type="Script" path="res://player.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" path="res://breacher.glb" id="1_ig7tw"]
@@ -27,6 +27,7 @@
 [ext_resource type="Material" path="res://materials/steel.tres" id="32_msteel"]
 [ext_resource type="PackedScene" path="res://atmosphere.tscn" id="33_atmos"]
 [ext_resource type="Script" path="res://site_builder.gd" id="40_site"]
+[ext_resource type="Script" path="res://hangar_builder.gd" id="41_cargo"]
 
 [sub_resource type="ShaderMaterial" id="Mat_vignette"]
 shader = ExtResource("16_vig")
@@ -191,6 +192,9 @@ is_entry = true
 script = ExtResource("40_site")
 concrete_tint = Color(0.36, 0.32, 0.28, 1)
 flood_color = Color(1.0, 0.82, 0.55, 1)
+
+[node name="Cargo" type="Node3D" parent="."]
+script = ExtResource("41_cargo")
 
 [node name="ArmorA" parent="." instance=ExtResource("20_armor")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -2)

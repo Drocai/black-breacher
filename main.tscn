@@ -29,6 +29,7 @@
 [ext_resource type="Material" path="res://materials/steel.tres" id="32_msteel"]
 [ext_resource type="PackedScene" path="res://atmosphere.tscn" id="33_atmos"]
 [ext_resource type="Script" path="res://site_builder.gd" id="40_site"]
+[ext_resource type="Script" path="res://interior_builder.gd" id="41_interior"]
 
 [sub_resource type="ShaderMaterial" id="Mat_vignette"]
 shader = ExtResource("16_vig")
@@ -238,6 +239,9 @@ tint = Color(0.7, 0.6, 0.45, 1)
 
 [node name="Site" type="Node3D" parent="."]
 script = ExtResource("40_site")
+
+[node name="Interior" type="Node3D" parent="."]
+script = ExtResource("41_interior")
 
 [node name="Door" parent="." unique_id=1107411609 instance=ExtResource("2_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)

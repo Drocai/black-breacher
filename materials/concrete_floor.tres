@@ -19,11 +19,11 @@ seamless = true
 noise = SubResource("FNL_nrm")
 
 [resource]
-albedo_color = Color(0.3, 0.29, 0.28, 1)
+albedo_color = Color(0.28, 0.25, 0.21, 1)
 albedo_texture = SubResource("Tex_alb")
 metallic = 0.0
 roughness = 0.95
 normal_enabled = true
-normal_scale = 0.6
+normal_scale = 0.9
 normal_texture = SubResource("Tex_nrm")
 uv1_scale = Vector3(30, 30, 1)

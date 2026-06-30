@@ -31,9 +31,9 @@ func _advance() -> void:
 	Game.on_mission_cleared()
 	await get_tree().create_timer(2.5).timeout
 	Game.mission += 1
-	# Load the next arena, or the victory screen once the campaign is done.
+	# Brief the next mission (or roll credits once the campaign is done).
 	var next: String = Game.scene_for_current_mission()
 	if next == "":
 		get_tree().change_scene_to_file(Game.VICTORY_SCENE)
 	else:
-		get_tree().change_scene_to_file(next)
+		get_tree().change_scene_to_file("res://briefing.tscn")

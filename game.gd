@@ -20,6 +20,31 @@ const SAVE_PATH := "user://blackbreacher_save.cfg"
 const ARENA_SCENES: Array = ["res://main.tscn", "res://main2.tscn", "res://main3.tscn"]
 const VICTORY_SCENE := "res://victory.tscn"
 
+# Per-mission framing (codename / location / objective / briefing copy),
+# parallel to ARENA_SCENES — index = mission - 1. Surfaced by the briefing
+# screen and the HUD so the campaign reads as real missions, not arenas.
+# Fiction: the Black Breacher works Marrow, Georgia, pulling one rotten thread.
+const MISSIONS: Array = [
+	{
+		"codename": "FIRST KNOCK",
+		"location": "Dixon's Pawn & Loan  —  Marrow, GA",
+		"objective": "Breach the front. Clear the floor. Take the ledger.",
+		"brief": "The pawn shop on Route 9 launders for the Warden's crew. Tonight, you knock. Quiet if you can manage it — but the ledger leaves with you either way. Not every door should be kicked. This one earns it.",
+	},
+	{
+		"codename": "HOLDING",
+		"location": "Marrow County Lockup  —  Cell Block C",
+		"objective": "Fight to the holding wing. Bring the witness out breathing.",
+		"brief": "The ledger named a witness, and County is bought and paid for. Walk in, cut through the block, and walk him back out. Loud or quiet, he leaves on his feet.",
+	},
+	{
+		"codename": "LAST DOOR",
+		"location": "River Road Hangar  —  Marrow Outskirts",
+		"objective": "Find the Warden. End the ring. Shut the door for good.",
+		"brief": "The whole rotten chain ends at the hangar on River Road. The Warden doesn't run and he doesn't fold. One last door, Breacher. Make it the one that counts.",
+	},
+]
+
 # run state
 var kills: int = 0
 var score: int = 0
@@ -166,6 +191,16 @@ func add_kill(points: int = 100) -> void:
 	score += points * combo_mult()
 	if score > best_score:
 		best_score = score
+
+# Framing for the current mission (codename/location/objective/brief).
+func mission_meta() -> Dictionary:
+	var idx: int = mission - 1
+	if idx >= 0 and idx < MISSIONS.size():
+		return MISSIONS[idx]
+	return {"codename": "MISSION %d" % mission, "location": "Marrow, GA", "objective": "Clear the area.", "brief": ""}
+
+func mission_count() -> int:
+	return ARENA_SCENES.size()
 
 # Scene path for the current `mission` value, or "" if the campaign is done.
 func scene_for_current_mission() -> String:

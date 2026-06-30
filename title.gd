@@ -20,4 +20,4 @@ func _ready() -> void:
 func _start(d: int) -> void:
 	Game.difficulty = d
 	Game.full_reset()
-	get_tree().change_scene_to_file("res://main.tscn")
+	get_tree().change_scene_to_file("res://briefing.tscn")

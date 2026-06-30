@@ -92,17 +92,17 @@ func _process(delta: float) -> void:
 	var reached: bool = obj != null and obj.reached
 
 	if reached and Game.all_waves_done and group_enemies == 0:
-		status.text = "MISSION %d COMPLETE   SCORE %d   BEST %d" % [Game.mission, Game.score, Game.best_score]
+		status.text = "%s  —  COMPLETE   SCORE %d   BEST %d" % [_mname(), Game.score, Game.best_score]
 	elif Game.all_waves_done:
 		if group_enemies > 0:
-			status.text = "MISSION %d   defeat the boss   KILLS %d" % [Game.mission, Game.kills]
+			status.text = "%s  —  defeat the boss   KILLS %d" % [_mname(), Game.kills]
 		else:
-			status.text = "MISSION %d   reach the objective   KILLS %d" % [Game.mission, Game.kills]
+			status.text = "%s  —  reach the objective   KILLS %d" % [_mname(), Game.kills]
 	elif Game.wave > 0:
-		status.text = "MISSION %d   WAVE %d/%d   ENEMIES %d   SCORE %d" % [Game.mission, Game.wave, Game.max_waves, Game.wave_enemies_left, Game.score]
+		status.text = "%s  —  WAVE %d/%d   ENEMIES %d   SCORE %d" % [_mname(), Game.wave, Game.max_waves, Game.wave_enemies_left, Game.score]
 	else:
 		var st := "UNDETECTED" if not Game.detected else "DETECTED"
-		status.text = "MISSION %d   breach the door   [%s]" % [Game.mission, st]
+		status.text = "%s  —  breach the door   [%s]" % [_mname(), st]
 
 	if players.size() > 0 and ("sneaking" in players[0]) and players[0].sneaking:
 		status.text = "[ SNEAKING ]   " + status.text
@@ -116,3 +116,6 @@ func _process(delta: float) -> void:
 	# Transient upgrade/event toast takes over the status line briefly.
 	if Game.toast_active():
 		status.text = ">>> %s <<<" % Game.toast_text
+
+func _mname() -> String:
+	return str(Game.mission_meta().get("codename", "MISSION %d" % Game.mission))

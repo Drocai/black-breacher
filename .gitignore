@@ -22,3 +22,6 @@ mono_crash.*.json
 _meshy_out/
 *.meshy_key
 tools/.meshy_key
+
+# Transient capture-harness config (per-run)
+tools/capture/_shot.cfg

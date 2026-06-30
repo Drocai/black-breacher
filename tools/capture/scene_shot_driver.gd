@@ -46,6 +46,15 @@ func _process(d: float) -> void:
 		if p != null and p is Node3D:
 			(p as Node3D).global_position = teleport
 		_tp_done = true
+	# Keep the player safe so combat-area captures aren't washed red.
+	if _tp_done:
+		var pl := get_tree().get_first_node_in_group("player")
+		if pl != null:
+			if "max_health" in pl:
+				pl.health = pl.max_health
+			if "_invuln" in pl:
+				pl._invuln = 99.0
+		Game.hit_flash = 0.0
 	if _t >= delay:
 		_shot = true
 		await RenderingServer.frame_post_draw

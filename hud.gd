@@ -91,13 +91,13 @@ func _process(delta: float) -> void:
 	var obj := get_tree().get_first_node_in_group("objective")
 	var reached: bool = obj != null and obj.reached
 
-	if reached and Game.all_waves_done and group_enemies == 0:
+	if Game.all_waves_done and group_enemies == 0 and (reached or str(Game.mission_meta().get("goal", "reach")) == "boss"):
 		status.text = "%s  —  COMPLETE   SCORE %d   BEST %d" % [_mname(), Game.score, Game.best_score]
 	elif Game.all_waves_done:
 		if group_enemies > 0:
-			status.text = "%s  —  defeat the boss   KILLS %d" % [_mname(), Game.kills]
+			status.text = "%s  —  %s   KILLS %d" % [_mname(), str(Game.mission_meta().get("goal_label", "reach the objective")), Game.kills]
 		else:
-			status.text = "%s  —  reach the objective   KILLS %d" % [_mname(), Game.kills]
+			status.text = "%s  —  %s   KILLS %d" % [_mname(), str(Game.mission_meta().get("goal_label", "reach the objective")), Game.kills]
 	elif Game.wave > 0:
 		status.text = "%s  —  WAVE %d/%d   ENEMIES %d   SCORE %d" % [_mname(), Game.wave, Game.max_waves, Game.wave_enemies_left, Game.score]
 	else:

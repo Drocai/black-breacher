@@ -24,6 +24,7 @@ func _ready() -> void:
 	_bunk = _mat(Color(0.20, 0.22, 0.26), 0.8, 0.1)
 	_build_side(-1)
 	_build_side(1)
+	_witness(Vector3(0.0, 0.0, -25.4))
 
 func _mat(c: Color, r: float, m: float) -> StandardMaterial3D:
 	var x := StandardMaterial3D.new()
@@ -40,6 +41,23 @@ func _box(size: Vector3, pos: Vector3, mat: Material, collide: bool = true) -> C
 	b.use_collision = collide
 	add_child(b)
 	return b
+
+# The witness you're here to pull out — a seated figure in the back holding
+# cell, lit so "reach the witness" reads at a glance.
+func _witness(pos: Vector3) -> void:
+	var jump := _mat(Color(0.78, 0.42, 0.16), 0.85, 0.0)   # orange jumpsuit
+	var skin := _mat(Color(0.5, 0.38, 0.3), 0.7, 0.0)
+	_box(Vector3(0.5, 0.6, 0.34), pos + Vector3(0.0, 0.95, 0.0), jump, false)     # torso
+	_box(Vector3(0.28, 0.28, 0.28), pos + Vector3(0.0, 1.42, 0.02), skin, false)  # head
+	_box(Vector3(0.5, 0.24, 0.5), pos + Vector3(0.0, 0.58, 0.25), jump, false)    # thighs
+	_box(Vector3(0.46, 0.5, 0.22), pos + Vector3(0.0, 0.34, 0.52), jump, false)   # shins
+	_box(Vector3(0.7, 0.4, 0.8), pos + Vector3(0.0, 0.2, 0.15), _bunk, false)     # bench
+	var l := OmniLight3D.new()
+	l.position = pos + Vector3(0.0, 2.2, 0.6)
+	l.light_color = Color(0.95, 0.85, 0.7)
+	l.light_energy = 1.6
+	l.omni_range = 4.5
+	add_child(l)
 
 func _build_side(sgn: int) -> void:
 	var x := wall_x * sgn

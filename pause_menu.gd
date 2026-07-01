@@ -22,3 +22,8 @@ func _input(event: InputEvent) -> void:
 		get_tree().paused = false
 		Game.full_reset()
 		get_tree().reload_current_scene()
+	elif event.physical_keycode == KEY_Q and get_tree().paused:
+		# Bail out of the run back to the title screen.
+		get_tree().paused = false
+		Game.full_reset()
+		get_tree().change_scene_to_file("res://title.tscn")

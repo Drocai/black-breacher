@@ -79,12 +79,13 @@ func _shoot(dir: Vector3) -> void:
 	_shoot_cd = shoot_cooldown
 	if projectile_scene == null:
 		return
+	var muzzle := global_position + Vector3(0.0, 1.2, 0.0) + dir * 0.8
 	var pr := projectile_scene.instantiate()
 	get_tree().current_scene.add_child(pr)
-	pr.global_position = global_position + Vector3(0.0, 1.2, 0.0) + dir * 0.8
+	pr.global_position = muzzle
 	if pr.has_method("setup"):
 		pr.setup(dir)
-	Game.spawn_hitspark(global_position + Vector3(0.0, 1.2, 0.0) + dir * 0.8)
+	Game.spawn_muzzle_flash(muzzle, dir)
 
 func _get_player() -> Node3D:
 	if is_instance_valid(_player):

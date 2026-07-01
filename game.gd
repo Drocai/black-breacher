@@ -243,6 +243,50 @@ func spawn_hitspark(pos: Vector3) -> void:
 	scene.add_child(s)
 	s.global_position = pos
 
+# Gunfire muzzle flash: a brief warm flash-light that pops the shooter + nearby
+# geometry, plus a fast bright tracer streak along the shot line. Fully code-built
+# and self-freeing (no scene asset). Sells ranged fire without clutter.
+func spawn_muzzle_flash(pos: Vector3, dir: Vector3, tracer_len: float = 26.0) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var d := dir.normalized()
+	if d.length() < 0.5:
+		d = Vector3.FORWARD
+
+	# Flash light — short, punchy, warm.
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.86, 0.55)
+	l.light_energy = 6.5
+	l.omni_range = 4.5
+	l.omni_attenuation = 1.6
+	scene.add_child(l)
+	l.global_position = pos
+	var tl := create_tween()
+	tl.tween_property(l, "light_energy", 0.0, 0.08)
+	tl.tween_callback(l.queue_free)
+
+	# Tracer streak — a thin unshaded emissive box along the shot line.
+	var tr := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.06, 0.06, 1.0)
+	tr.mesh = bm
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(1.0, 0.9, 0.55)
+	m.emission_enabled = true
+	m.emission = Color(1.0, 0.8, 0.4)
+	m.emission_energy_multiplier = 5.0
+	tr.material_override = m
+	scene.add_child(tr)
+	tr.global_position = pos + d * (tracer_len * 0.5)
+	tr.look_at(pos + d * tracer_len, Vector3.UP)
+	tr.scale = Vector3(1.0, 1.0, tracer_len)
+	var tt := create_tween()
+	tt.tween_property(m, "emission_energy_multiplier", 0.0, 0.07)
+	tt.parallel().tween_property(tr, "scale:x", 0.0, 0.07)
+	tt.tween_callback(tr.queue_free)
+
 func spawn_explosion(pos: Vector3) -> void:
 	var scene := get_tree().current_scene
 	if scene == null:

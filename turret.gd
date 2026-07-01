@@ -52,7 +52,7 @@ func _shoot(dir: Vector3) -> void:
 	pr.global_position = muzzle
 	if pr.has_method("setup"):
 		pr.setup(dir)
-	Game.spawn_hitspark(muzzle)
+	Game.spawn_muzzle_flash(muzzle, dir)
 
 func _get_player() -> Node3D:
 	if is_instance_valid(_player):

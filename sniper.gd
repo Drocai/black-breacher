@@ -106,6 +106,11 @@ func _fire(p: Node3D) -> void:
 	_cooldown_t = cooldown
 	beam.visible = false
 
+	# Muzzle flash + tracer down the locked firing line.
+	var origin: Vector3 = muzzle.global_position
+	var shot_dir: Vector3 = _locked_point - origin
+	Game.spawn_muzzle_flash(origin, shot_dir, maxf(shot_dir.length(), 6.0))
+
 	var impact: Vector3 = _locked_point
 	if p != null:
 		var diff: Vector3 = p.global_position - _locked_point

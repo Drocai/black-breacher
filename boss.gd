@@ -273,7 +273,7 @@ func _do_volley() -> void:
 		pr.global_position = muzzle + dir * 1.0
 		if pr.has_method("setup"):
 			pr.setup(dir)
-	Game.spawn_hitspark(muzzle + base_dir * 1.0)
+	Game.spawn_muzzle_flash(muzzle + base_dir * 1.0, base_dir, 30.0)
 
 func _do_summon() -> void:
 	if enemy_scene == null:

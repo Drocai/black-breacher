@@ -19,10 +19,14 @@ func _on_body_entered(body: Node) -> void:
 		reached = true
 
 func _process(_delta: float) -> void:
-	# Mission complete = objective reached + all waves done + nothing left alive.
 	if _completing:
 		return
-	if reached and Game.all_waves_done and get_tree().get_nodes_in_group("enemy").size() == 0:
+	# Building cleared = all waves done and nothing left alive (boss included).
+	var cleared: bool = Game.all_waves_done and get_tree().get_nodes_in_group("enemy").size() == 0
+	# "boss" missions end on that clear (killing the Warden IS the objective);
+	# "reach" missions also need the player to reach the objective marker.
+	var goal: String = str(Game.mission_meta().get("goal", "reach"))
+	if cleared and (goal == "boss" or reached):
 		_completing = true
 		_advance()
 

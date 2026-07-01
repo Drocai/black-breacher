@@ -69,6 +69,13 @@ func _physics_process(delta: float) -> void:
 		_pass()
 		return
 
+	# Auto-deploy through the mission briefing screen (added by the mission
+	# system); the human presses SPACE here, the test drives it forward.
+	if scene.name == "Briefing":
+		if "_deploying" in scene and not scene._deploying:
+			scene._deploy()
+		return
+
 	# Mid-transition or some other scene — wait it out.
 	if scene.name != "World":
 		return

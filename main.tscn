@@ -577,7 +577,8 @@ theme_override_font_sizes/font_size = 28
 text = "PAUSED
 
 Esc — Resume
-R — Restart"
+R — Restart
+Q — Quit to Title"
 horizontal_alignment = 1
 vertical_alignment = 1
 

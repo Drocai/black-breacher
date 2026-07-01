@@ -74,7 +74,7 @@ ssao_intensity = 2.0
 glow_enabled = true
 glow_intensity = 0.9
 glow_strength = 1.0
-glow_bloom = 0.12
+glow_bloom = 0.032
 glow_hdr_threshold = 1.0
 fog_enabled = true
 fog_light_color = Color(0.09, 0.06, 0.04, 1)
@@ -120,7 +120,7 @@ roughness = 0.35
 albedo_color = Color(1, 0.25, 0.2, 1)
 emission_enabled = true
 emission = Color(1, 0.2, 0.15, 1)
-emission_energy_multiplier = 7.0
+emission_energy_multiplier = 2.8
 
 [sub_resource type="StandardMaterial3D" id="Mat_led_green"]
 albedo_color = Color(0.3, 1, 0.4, 1)

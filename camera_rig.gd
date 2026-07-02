@@ -7,10 +7,12 @@ extends Camera3D
 #  Trackpad-friendly: no mouse-look, fully automatic.
 # ============================================================
 
-@export var offset: Vector3 = Vector3(0, 2.55, 4.3)
+@export var offset: Vector3 = Vector3(0, 6.0, 5.4)
 @export var follow_lerp: float = 9.0
-@export var look_ahead: float = 1.4
-@export var pitch_degrees: float = -27.0
+@export var look_ahead: float = 1.2
+@export var pitch_degrees: float = -46.0
+@export var base_fov: float = 66.0
+@export var min_cam_dist: float = 1.6   # never pull closer than this on a wall hit
 @export var punch_amount: float = 0.32   # how far the hero punch-in pulls the camera in
 @export var hero_drop: float = 1.3       # how far the camera dips to look UP at him
 @export var hero_pitch_up: float = 7.0   # extra up-tilt (deg) during a hero beat
@@ -37,7 +39,8 @@ var _hero_dur: float = 0.0
 func _ready() -> void:
 	add_to_group("camera")
 	rotation = Vector3(deg_to_rad(pitch_degrees), 0.0, 0.0)
-	_fov_base = fov
+	fov = base_fov
+	_fov_base = base_fov
 	var p := _get_player()
 	if p:
 		global_position = p.global_position + offset
@@ -65,6 +68,20 @@ func _physics_process(delta: float) -> void:
 	var off: Vector3 = offset * (1.0 - punch_amount * _punch)
 	off.y -= hero_drop * hero
 	var target: Vector3 = p.global_position + off + lead
+	# Wall-avoidance: if geometry sits between the player and the desired camera
+	# spot, pull the camera in to just before the obstruction so we never end up
+	# behind a wall or staring at one.
+	var pivot: Vector3 = p.global_position + Vector3(0.0, 1.5, 0.0)
+	var space := get_world_3d().direct_space_state
+	var q := PhysicsRayQueryParameters3D.create(pivot, target)
+	q.exclude = [p.get_rid()]
+	var hit := space.intersect_ray(q)
+	if hit:
+		var dir: Vector3 = target - pivot
+		var dist: float = dir.length()
+		if dist > 0.01:
+			var pull: float = maxf(min_cam_dist, (hit.position as Vector3).distance_to(pivot) - 0.3)
+			target = pivot + dir.normalized() * minf(dist, pull)
 	var t: float = 1.0 - exp(-follow_lerp * delta)
 	global_position = global_position.lerp(target, t)
 	_punch = move_toward(_punch, 0.0, delta / 0.45)

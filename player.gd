@@ -18,6 +18,8 @@ extends CharacterBody3D
 # --- Movement tunables ---
 @export var speed: float = 4.0
 @export var run_speed: float = 7.0
+@export var ground_accel: float = 38.0   # ramp up — gives the big man weight off the line
+@export var ground_decel: float = 50.0   # ramp down — momentum carries a beat, no dead stop
 @export var rotation_speed: float = 12.0
 @export var jump_velocity: float = 5.0
 @export var sneak_speed: float = 2.0
@@ -247,13 +249,15 @@ func _physics_process(delta: float) -> void:
 		current_speed = sneak_speed
 
 	if direction != Vector3.ZERO:
-		velocity.x = direction.x * current_speed
-		velocity.z = direction.z * current_speed
+		# Ramp toward target velocity instead of snapping — he builds and sheds
+		# momentum like someone with mass, not a cursor.
+		velocity.x = move_toward(velocity.x, direction.x * current_speed, ground_accel * delta)
+		velocity.z = move_toward(velocity.z, direction.z * current_speed, ground_accel * delta)
 		var target_angle := atan2(direction.x, direction.z)
 		mesh.rotation.y = lerp_angle(mesh.rotation.y, target_angle, rotation_speed * delta)
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, current_speed)
-		velocity.z = move_toward(velocity.z, 0.0, current_speed)
+		velocity.x = move_toward(velocity.x, 0.0, ground_decel * delta)
+		velocity.z = move_toward(velocity.z, 0.0, ground_decel * delta)
 
 	var hspeed := Vector2(velocity.x, velocity.z).length()
 	_update_locomotion_anim(direction != Vector3.ZERO, running, hspeed)
@@ -752,7 +756,7 @@ func _update_hold() -> void:
 	var fwd := Vector3(sin(mesh.rotation.y), 0.0, cos(mesh.rotation.y))
 	_held_enemy.global_position = global_position + fwd * 1.4 + Vector3(0.0, 1.0, 0.0)
 
-func _hitstop(duration: float = 0.06) -> void:
+func _hitstop(duration: float = 0.1) -> void:
 	Game.hitstop(duration)
 
 func take_damage(amount: int) -> void:

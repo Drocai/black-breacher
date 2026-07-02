@@ -317,9 +317,12 @@ func _thrown_impact() -> void:
 	_die()
 
 func _flash() -> void:
+	# Physical impact hitch — a sharp jolt back along the hit axis that snaps
+	# then settles. Replaces the old vertical squash (read as rubbery/jelly).
 	var t := create_tween()
-	t.tween_property(mesh, "scale", Vector3(1.15, 0.85, 1.15), 0.05)
-	t.tween_property(mesh, "scale", Vector3.ONE, 0.1)
+	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(mesh, "position:z", 0.14, 0.03)
+	t.tween_property(mesh, "position:z", 0.0, 0.13)
 	_vis.pulse(self, Color(1.0, 0.15, 0.1), 3.5, 0.02, 0.16)
 
 func _knockback_anim() -> void:

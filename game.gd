@@ -179,9 +179,10 @@ func _dilate(scale: float, duration: float) -> void:
 	if mine == _dilation_id:
 		Engine.time_scale = 1.0
 
-# A hard, near-freeze micro-pause on a clean hit.
-func hitstop(duration: float = 0.06) -> void:
-	_dilate(0.05, duration)
+# A hard, near-freeze micro-pause on a clean hit. Deeper freeze + a touch
+# longer so a landed strike reads as CONNECTING with weight, not glancing.
+func hitstop(duration: float = 0.1) -> void:
+	_dilate(0.02, duration)
 
 # A cinematic slow-motion beat for signature moves / big finishers.
 func slowmo(scale: float = 0.3, duration: float = 0.28) -> void:

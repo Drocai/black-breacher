@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://bbbarrel01"]
+[gd_scene load_steps=6 format=3 uid="uid://bbbarrel01"]
 
 [ext_resource type="Script" path="res://barrel.gd" id="1_barrel"]
+[ext_resource type="Material" path="res://materials/pbr/Metal063/Metal063_2K-JPG.tres" id="9_metal"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_barrel"]
 albedo_color = Color(0.45, 0.08, 0.08, 1)
@@ -22,7 +23,7 @@ script = ExtResource("1_barrel")
 [node name="Mesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 mesh = SubResource("Mesh_barrel")
-material_override = SubResource("Mat_barrel")
+material_override = ExtResource("9_metal")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)

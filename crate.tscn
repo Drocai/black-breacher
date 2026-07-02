@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://bbcrate01"]
+[gd_scene load_steps=8 format=3 uid="uid://bbcrate01"]
 
 [ext_resource type="Script" path="res://crate.gd" id="1_crate"]
+[ext_resource type="Material" path="res://materials/pbr/Wood095/Wood095_2K-JPG.tres" id="2_wood"]
 
 [sub_resource type="FastNoiseLite" id="FNL_crate"]
 frequency = 0.4
@@ -26,7 +27,7 @@ script = ExtResource("1_crate")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
 mesh = SubResource("Mesh_crate")
-material_override = SubResource("Mat_crate")
+material_override = ExtResource("2_wood")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("Box_crate")
